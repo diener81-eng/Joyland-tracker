@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joyland Tracker</title>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background: #111;
+    color: #fff;
+    text-align: center;
+    padding: 1rem;
+  }
+  button {
+    font-size: 1.2rem;
+    padding: 1rem;
+    margin: .4rem;
+    width: 90%;
+    max-width: 400px;
+    border-radius: 10px;
+    border: none;
+  }
+  .axe { background: #c0392b; }
+  .card { background: #2980b9; }
+  .block { background: #27ae60; }
+  .jackpot { background: #f1c40f; color: #000; }
+  .reset { background: #555; }
+</style>
+</head>
+<body>
+
+<h2>Joyland Tracker</h2>
+<p>Tap when you hit an event</p>
+
+<button class="axe" onclick="log('Axe Ricochet')">Axe Ricochet</button>
+<button class="card" onclick="log('Card Realm')">Card Realm</button>
+<button class="block" onclick="log('Blocks Duel')">Blocks Duel</button>
+<button class="jackpot" onclick="log('Jackpot')">Jackpot</button>
+<button class="reset" onclick="reset()">Reset Cycle</button>
+
+<pre id="output"></pre>
+
+<script>
+const sequences = {
+  1:["Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Card Realm","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Jackpot"],
+  2:["Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Card Realm","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Jackpot","Crossroads of Fate","Tiny Adventures","Blocks Duel"],
+  3:["Tiny Adventures","Tiny Adventures","Crossroads of Fate","Card Realm","Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Jackpot","Tiny Adventures","Blocks Duel","Crossroads of Fate"],
+  4:["Tiny Adventures","Tiny Adventures","Card Realm","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
+};
+
+let possibilities = [];
+let history = [];
+
+function reset() {
+  history = [];
+  possibilities = [];
+  document.getElementById("output").textContent = "Cycle reset.";
+}
+
+function log(event) {
+  history.push(event);
+
+  if (possibilities.length === 0) {
+    for (const [seq, moves] of Object.entries(sequences)) {
+      moves.forEach((m, i) => {
+        if (m === event) {
+          possibilities.push({ seq, move: i + 1 });
+        }
+      });
+    }
+  } else {
+    possibilities = possibilities.filter(p =>
+      sequences[p.seq][p.move] === event
+    ).map(p => ({ seq: p.seq, move: p.move + 1 }));
+  }
+
+  display();
+}
+
+function display() {
+  const out = document.getElementById("output");
+
+  if (possibilities.length === 1) {
+    const p = possibilities[0];
+    const next = sequences[p.seq].slice(p.move);
+
+    const warnIndex = next.findIndex(m =>
+      m === "Axe Ricochet" || m === "Card Realm"
+    );
+
+    out.textContent =
+      `Sequence ${p.seq}\n` +
+      `Move ${p.move}\n` +
+      (warnIndex === 0
+        ? "⚠️ ENABLE 50x NOW"
+        : warnIndex > 0
+          ? `Upcoming ${next[warnIndex]} at move ${p.move + warnIndex + 1}`
+          : "No upcoming Axe/Card");
+  } else {
+    out.textContent =
+      `Possible positions: ${possibilities.length}\n` +
+      "Keep tapping events...";
+  }
+}
+</script>
+
+</body>
+</html>
