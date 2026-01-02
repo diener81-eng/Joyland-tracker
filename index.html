@@ -3,42 +3,66 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Joyland Tracker</title>
+
 <style>
   body {
     font-family: system-ui, sans-serif;
-    background: #111;
+    background: #0f0f0f;
     color: #fff;
     text-align: center;
     padding: 1rem;
   }
   button {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     padding: 1rem;
-    margin: .4rem;
+    margin: .35rem;
     width: 90%;
-    max-width: 400px;
-    border-radius: 10px;
+    max-width: 420px;
+    border-radius: 12px;
     border: none;
   }
+  .tiny { background: #444; }
   .axe { background: #c0392b; }
   .card { background: #2980b9; }
   .block { background: #27ae60; }
   .jackpot { background: #f1c40f; color: #000; }
   .reset { background: #555; }
+
+  .timeline {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+  .cell {
+    width: 26px;
+    height: 26px;
+    margin: 3px;
+    border-radius: 6px;
+    background: #333;
+    font-size: 0.8rem;
+    line-height: 26px;
+  }
+  .done { background: #666; }
+  .current { background: #3498db; }
+  .warning { background: #e67e22; }
 </style>
 </head>
+
 <body>
 
 <h2>Joyland Tracker</h2>
-<p>Tap when you hit an event</p>
+<p>Tap every move you see</p>
 
+<button class="tiny" onclick="log('Tiny Adventures')">Tiny Adventures</button>
 <button class="axe" onclick="log('Axe Ricochet')">Axe Ricochet</button>
 <button class="card" onclick="log('Card Realm')">Card Realm</button>
 <button class="block" onclick="log('Blocks Duel')">Blocks Duel</button>
 <button class="jackpot" onclick="log('Jackpot')">Jackpot</button>
 <button class="reset" onclick="reset()">Reset Cycle</button>
 
-<pre id="output"></pre>
+<pre id="status"></pre>
+<div class="timeline" id="timeline"></div>
 
 <script>
 const sequences = {
@@ -48,13 +72,14 @@ const sequences = {
   4:["Tiny Adventures","Tiny Adventures","Card Realm","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
 };
 
-let possibilities = [];
 let history = [];
+let possibilities = [];
 
 function reset() {
   history = [];
   possibilities = [];
-  document.getElementById("output").textContent = "Cycle reset.";
+  document.getElementById("status").textContent = "Cycle reset.";
+  document.getElementById("timeline").innerHTML = "";
 }
 
 function log(event) {
@@ -69,38 +94,55 @@ function log(event) {
       });
     }
   } else {
-    possibilities = possibilities.filter(p =>
-      sequences[p.seq][p.move] === event
-    ).map(p => ({ seq: p.seq, move: p.move + 1 }));
+    possibilities = possibilities
+      .filter(p => sequences[p.seq][p.move] === event)
+      .map(p => ({ seq: p.seq, move: p.move + 1 }));
   }
 
-  display();
+  render();
 }
 
-function display() {
-  const out = document.getElementById("output");
+function render() {
+  const status = document.getElementById("status");
+  const timeline = document.getElementById("timeline");
+  timeline.innerHTML = "";
 
-  if (possibilities.length === 1) {
-    const p = possibilities[0];
-    const next = sequences[p.seq].slice(p.move);
+  status.textContent =
+    `Moves logged: ${history.length}\n` +
+    `Possible positions: ${possibilities.length}`;
 
-    const warnIndex = next.findIndex(m =>
-      m === "Axe Ricochet" || m === "Card Realm"
-    );
+  if (possibilities.length !== 1) return;
 
-    out.textContent =
-      `Sequence ${p.seq}\n` +
-      `Move ${p.move}\n` +
-      (warnIndex === 0
-        ? "⚠️ ENABLE 50x NOW"
-        : warnIndex > 0
-          ? `Upcoming ${next[warnIndex]} at move ${p.move + warnIndex + 1}`
-          : "No upcoming Axe/Card");
-  } else {
-    out.textContent =
-      `Possible positions: ${possibilities.length}\n` +
-      "Keep tapping events...";
+  const p = possibilities[0];
+  const moves = sequences[p.seq];
+
+  status.textContent =
+    `Sequence ${p.seq}\n` +
+    `Move ${p.move} / 13`;
+
+  const upcoming = moves.slice(p.move);
+  const warnIndex = upcoming.findIndex(m =>
+    m === "Axe Ricochet" || m === "Card Realm"
+  );
+
+  if (warnIndex === 0) {
+    status.textContent += `\n⚠️ ENABLE 50x NOW`;
+  } else if (warnIndex > 0) {
+    status.textContent +=
+      `\nNext ${upcoming[warnIndex]} at move ${p.move + warnIndex + 1}`;
   }
+
+  moves.forEach((_, i) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+
+    if (i + 1 < p.move) cell.classList.add("done");
+    if (i + 1 === p.move) cell.classList.add("current");
+    if (i + 1 === p.move + warnIndex) cell.classList.add("warning");
+
+    cell.textContent = i + 1;
+    timeline.appendChild(cell);
+  });
 }
 </script>
 
