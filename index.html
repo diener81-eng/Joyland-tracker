@@ -39,8 +39,30 @@
   .card { background: #2980b9; }
   .block { background: #27ae60; }
   .jackpot { background: #f1c40f; color: #000; }
+
   .undo { background: #8e44ad; }
   .reset { background: #555; }
+
+  .divider {
+    margin: 1.2rem auto;
+    width: 90%;
+    max-width: 420px;
+    border-top: 1px solid #333;
+  }
+
+  .history {
+    max-height: 120px;
+    overflow-y: auto;
+    background: #181818;
+    border-radius: 10px;
+    padding: .5rem;
+    font-size: .9rem;
+    color: #ccc;
+    margin: .75rem auto;
+    width: 90%;
+    max-width: 420px;
+    text-align: left;
+  }
 
   .timeline {
     display: flex;
@@ -63,10 +85,11 @@
   .current { background: #3498db; }
   .warning { background: #e67e22; }
 
-  .last {
+  .alert {
     margin-top: .5rem;
-    font-size: .9rem;
-    color: #aaa;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #ff9f43;
   }
 </style>
 </head>
@@ -76,23 +99,32 @@
 <h2>Joyland Tracker</h2>
 
 <div class="desc">
-  Tap each event as you encounter it in Joyland.<br>
-  This tracker identifies your sequence and move so you can
+  Tap each event as it appears in Joyland.<br>
+  This tracker finds your sequence and move so you can
   <b>use 50x compass on Axe Ricochet and Card Realm</b>.
 </div>
 
+<!-- INPUT BUTTONS -->
 <button class="tiny" onclick="log('Tiny Adventures')">Tiny Adventures</button>
 <button class="axe" onclick="log('Axe Ricochet')">Axe Ricochet</button>
 <button class="card" onclick="log('Card Realm')">Card Realm</button>
 <button class="block" onclick="log('Blocks Duel')">Blocks Duel</button>
 <button class="jackpot" onclick="log('Jackpot')">Jackpot</button>
 
+<!-- STATUS -->
+<pre id="status"></pre>
+<div class="alert" id="alert"></div>
+
+<!-- HISTORY -->
+<div class="history" id="history"></div>
+
+<!-- TIMELINE -->
+<div class="timeline" id="timeline"></div>
+
+<!-- CONTROLS -->
+<div class="divider"></div>
 <button class="undo" onclick="undo()">Undo Last Tap</button>
 <button class="reset" onclick="reset()">Reset Cycle</button>
-
-<pre id="status"></pre>
-<div class="last" id="lastTap"></div>
-<div class="timeline" id="timeline"></div>
 
 <script>
 const sequences = {
@@ -110,19 +142,18 @@ function reset() {
   possibilities = [];
   document.getElementById("status").textContent = "Cycle reset.";
   document.getElementById("timeline").innerHTML = "";
-  document.getElementById("lastTap").textContent = "";
+  document.getElementById("history").innerHTML = "";
+  document.getElementById("alert").textContent = "";
 }
 
 function undo() {
-  if (history.length === 0) return;
+  if (!history.length) return;
   history.pop();
   rebuild();
 }
 
 function rebuild() {
   possibilities = [];
-  document.getElementById("timeline").innerHTML = "";
-
   history.forEach(e => process(e));
   render();
 }
@@ -134,7 +165,7 @@ function log(event) {
 }
 
 function process(event) {
-  if (possibilities.length === 0) {
+  if (!possibilities.length) {
     for (const [seq, moves] of Object.entries(sequences)) {
       moves.forEach((m, i) => {
         if (m === event) possibilities.push({ seq, move: i + 1 });
@@ -150,17 +181,19 @@ function process(event) {
 function render() {
   const status = document.getElementById("status");
   const timeline = document.getElementById("timeline");
-  const lastTap = document.getElementById("lastTap");
-  timeline.innerHTML = "";
+  const historyBox = document.getElementById("history");
+  const alert = document.getElementById("alert");
 
-  lastTap.textContent =
-    history.length > 0
-      ? `Last tap: ${history[history.length - 1]} (${history.length} total)`
-      : "";
+  timeline.innerHTML = "";
+  historyBox.innerHTML = history
+    .map((e, i) => `${i + 1}. ${e}`)
+    .join("<br>");
 
   status.textContent =
     `Moves logged: ${history.length}\n` +
     `Possible positions: ${possibilities.length}`;
+
+  alert.textContent = "";
 
   if (possibilities.length !== 1) return;
 
@@ -177,10 +210,7 @@ function render() {
   );
 
   if (warnIndex === 0) {
-    status.textContent += `\n⚠️ ENABLE 50x NOW`;
-  } else if (warnIndex > 0) {
-    status.textContent +=
-      `\nNext ${upcoming[warnIndex]} at move ${p.move + warnIndex + 1}`;
+    alert.textContent = "🚨 ENABLE 50x NOW 🚨";
   }
 
   moves.forEach((_, i) => {
