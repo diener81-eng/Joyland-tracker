@@ -12,6 +12,18 @@
     text-align: center;
     padding: 1rem;
   }
+
+  h2 { margin-bottom: .3rem; }
+
+  .desc {
+    font-size: 0.95rem;
+    color: #ccc;
+    margin-bottom: 1rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   button {
     font-size: 1.1rem;
     padding: 1rem;
@@ -21,11 +33,13 @@
     border-radius: 12px;
     border: none;
   }
+
   .tiny { background: #444; }
   .axe { background: #c0392b; }
   .card { background: #2980b9; }
   .block { background: #27ae60; }
   .jackpot { background: #f1c40f; color: #000; }
+  .undo { background: #8e44ad; }
   .reset { background: #555; }
 
   .timeline {
@@ -34,6 +48,7 @@
     flex-wrap: wrap;
     margin-top: 1rem;
   }
+
   .cell {
     width: 26px;
     height: 26px;
@@ -43,25 +58,40 @@
     font-size: 0.8rem;
     line-height: 26px;
   }
+
   .done { background: #666; }
   .current { background: #3498db; }
   .warning { background: #e67e22; }
+
+  .last {
+    margin-top: .5rem;
+    font-size: .9rem;
+    color: #aaa;
+  }
 </style>
 </head>
 
 <body>
 
 <h2>Joyland Tracker</h2>
-<p>Tap every move you see</p>
+
+<div class="desc">
+  Tap each event as you encounter it in Joyland.<br>
+  This tracker identifies your sequence and move so you can
+  <b>use 50x compass on Axe Ricochet and Card Realm</b>.
+</div>
 
 <button class="tiny" onclick="log('Tiny Adventures')">Tiny Adventures</button>
 <button class="axe" onclick="log('Axe Ricochet')">Axe Ricochet</button>
 <button class="card" onclick="log('Card Realm')">Card Realm</button>
 <button class="block" onclick="log('Blocks Duel')">Blocks Duel</button>
 <button class="jackpot" onclick="log('Jackpot')">Jackpot</button>
+
+<button class="undo" onclick="undo()">Undo Last Tap</button>
 <button class="reset" onclick="reset()">Reset Cycle</button>
 
 <pre id="status"></pre>
+<div class="last" id="lastTap"></div>
 <div class="timeline" id="timeline"></div>
 
 <script>
@@ -80,17 +110,34 @@ function reset() {
   possibilities = [];
   document.getElementById("status").textContent = "Cycle reset.";
   document.getElementById("timeline").innerHTML = "";
+  document.getElementById("lastTap").textContent = "";
+}
+
+function undo() {
+  if (history.length === 0) return;
+  history.pop();
+  rebuild();
+}
+
+function rebuild() {
+  possibilities = [];
+  document.getElementById("timeline").innerHTML = "";
+
+  history.forEach(e => process(e));
+  render();
 }
 
 function log(event) {
   history.push(event);
+  process(event);
+  render();
+}
 
+function process(event) {
   if (possibilities.length === 0) {
     for (const [seq, moves] of Object.entries(sequences)) {
       moves.forEach((m, i) => {
-        if (m === event) {
-          possibilities.push({ seq, move: i + 1 });
-        }
+        if (m === event) possibilities.push({ seq, move: i + 1 });
       });
     }
   } else {
@@ -98,14 +145,18 @@ function log(event) {
       .filter(p => sequences[p.seq][p.move] === event)
       .map(p => ({ seq: p.seq, move: p.move + 1 }));
   }
-
-  render();
 }
 
 function render() {
   const status = document.getElementById("status");
   const timeline = document.getElementById("timeline");
+  const lastTap = document.getElementById("lastTap");
   timeline.innerHTML = "";
+
+  lastTap.textContent =
+    history.length > 0
+      ? `Last tap: ${history[history.length - 1]} (${history.length} total)`
+      : "";
 
   status.textContent =
     `Moves logged: ${history.length}\n` +
@@ -138,7 +189,8 @@ function render() {
 
     if (i + 1 < p.move) cell.classList.add("done");
     if (i + 1 === p.move) cell.classList.add("current");
-    if (i + 1 === p.move + warnIndex) cell.classList.add("warning");
+    if (warnIndex >= 0 && i + 1 === p.move + warnIndex)
+      cell.classList.add("warning");
 
     cell.textContent = i + 1;
     timeline.appendChild(cell);
