@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,12 +24,14 @@
   }
 
   .start { background:#2ecc71; color:#000; font-weight:bold; }
+
   .tiny { background:#444; }
+  .crossroads { background:#16a085; }
   .axe { background:#c0392b; }
   .treasure { background:#2980b9; }
   .block { background:#27ae60; }
   .jackpot { background:#f1c40f; color:#000; }
-  .crossroads { background:#16a085; }
+
   .undo { background:#8e44ad; }
   .reset { background:#555; }
 
@@ -47,27 +49,26 @@
   }
 
   .cell {
-    width:26px;
-    height:26px;
-    margin:3px;
+    width:28px;
+    height:28px;
+    margin:4px;
     border-radius:6px;
-    background:#333;
     font-size:.8rem;
-    line-height:26px;
+    line-height:28px;
+    color:#fff;
   }
 
-  .done { background:#666; }
-  .current { background:#3498db; }
-  .warning { background:#e67e22; }
+  .done { filter: brightness(0.6); }
+  .current { outline:3px solid #fff; }
+  .warning { outline:3px solid #e67e22; }
 
   .alert {
     margin-top:.5rem;
-    font-size:1.1rem;
+    font-size:1.05rem;
     font-weight:bold;
-    color:#ff9f43;
   }
 
-  #timelineBottom { margin-top:8px; }
+  #timelineBottom { margin-top:10px; }
 </style>
 </head>
 
@@ -82,7 +83,9 @@
 <button class="tiny" onclick="log('Tiny Adventures')">T · Tiny</button>
 <button class="crossroads" onclick="log('Crossroads of Fate')">F · Crossroads</button>
 <button class="axe" onclick="log('Axe Ricochet')">A · Axe</button>
-<button class="treasure" onclick="log('Treasure Hunt')">C · Treasure Hunt</button>
+<button class="treasure" onclick="log('Treasure Hunt')">
+  C · Treasure Hunt (Card Realm)
+</button>
 <button class="block" onclick="log('Blocks Duel')">B · Blocks</button>
 <button class="jackpot" onclick="log('Jackpot')">J · Jackpot</button>
 
@@ -97,20 +100,29 @@
 <button class="reset" onclick="resetAll()">Reset All</button>
 
 <script>
-const sequences={
+const sequences = {
   1:["Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Jackpot"],
   2:["Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Jackpot","Crossroads of Fate","Tiny Adventures","Blocks Duel"],
   3:["Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Jackpot","Tiny Adventures","Blocks Duel","Crossroads of Fate"],
   4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
 };
 
-const abbrev={
+const abbrev = {
   "Tiny Adventures":"T",
   "Crossroads of Fate":"F",
   "Axe Ricochet":"A",
   "Treasure Hunt":"C",
   "Blocks Duel":"B",
   "Jackpot":"J"
+};
+
+const colors = {
+  "Tiny Adventures":"#444",
+  "Crossroads of Fate":"#16a085",
+  "Axe Ricochet":"#c0392b",
+  "Treasure Hunt":"#2980b9",
+  "Blocks Duel":"#27ae60",
+  "Jackpot":"#f1c40f"
 };
 
 let history=[];
@@ -179,39 +191,61 @@ function render(){
   alert.textContent="";
 
   if(!history.length){
-    status.textContent=forcedStart
+    status.textContent = forcedStart
       ? "Start-of-sequence mode enabled.\nWaiting for input..."
       : "Waiting for input...";
     return;
   }
 
-  status.textContent=
-    `Moves: ${history.length}\nPossible: ${possibilities.length}`;
+  status.textContent =
+    `Moves logged: ${history.length}\nPossible positions: ${possibilities.length}`;
 
-  if(possibilities.length===1){
-    const p=possibilities[0];
-    const moves=sequences[p.seq];
-    status.textContent=
-      `Sequence ${p.seq}\nMove ${p.move} / 13`;
+  if(possibilities.length !== 1) return;
 
-    moves.forEach((m,i)=>{
-      const cell=document.createElement("div");
-      cell.className="cell";
-      if(i+1<p.move) cell.classList.add("done");
-      if(i+1===p.move) cell.classList.add("current");
+  const p = possibilities[0];
+  const moves = sequences[p.seq];
 
-      let l=abbrev[m];
-      if(l==="A"||l==="C") l=`<b>${l}</b>`;
-      cell.innerHTML=`<small>${i+1}</small><br>${l}`;
+  status.textContent =
+    `Sequence ${p.seq}\nMove ${p.move} / 13`;
 
-      if(m==="Axe Ricochet"||m==="Treasure Hunt")
-        cell.style.border="2px solid white";
+  const upcoming = moves.slice(p.move);
+  const warnIndex = upcoming.findIndex(
+    m => m==="Axe Ricochet" || m==="Treasure Hunt"
+  );
 
-      (i<6?top:bottom).appendChild(cell);
-    });
-
-    forcedStart=false;
+  if(warnIndex === 0){
+    if(upcoming[0]==="Axe Ricochet"){
+      alert.textContent = "🚨 ENABLE 50× NOW (Axe Ricochet)";
+    } else {
+      alert.textContent =
+        "💰 Treasure Hunt next — invest 50× if you need gold for treasure pulls";
+    }
+  } else if(warnIndex > 0){
+    status.textContent +=
+      `\nNext ${upcoming[warnIndex]} at move ${p.move + warnIndex + 1}`;
   }
+
+  moves.forEach((m,i)=>{
+    const cell=document.createElement("div");
+    cell.className="cell";
+    cell.style.background = colors[m];
+
+    if(i+1 < p.move) cell.classList.add("done");
+    if(i+1 === p.move) cell.classList.add("current");
+    if(warnIndex>=0 && i+1===p.move+warnIndex)
+      cell.classList.add("warning");
+
+    let l = abbrev[m];
+    if(l==="A"||l==="C") l = `<b>${l}</b>`;
+    cell.innerHTML = `<small>${i+1}</small><br>${l}`;
+
+    if(m==="Axe Ricochet"||m==="Treasure Hunt")
+      cell.style.border="2px solid white";
+
+    (i<6 ? top : bottom).appendChild(cell);
+  });
+
+  forcedStart=false;
 }
 </script>
 
