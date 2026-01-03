@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -142,32 +142,62 @@ const abbrev = {
 
 let history=[];
 let possibilities=[];
-let forcedStart=false;
+let sequenceStarted=false;
 let autoStartNextSequence=false;
 
 function manualStart(){
   history=[];
   possibilities=[];
-  forcedStart=true;
+  sequenceStarted=true;
   render();
 }
 
 function resetAll(){
   history=[];
   possibilities=[];
-  forcedStart=false;
+  sequenceStarted=false;
   autoStartNextSequence=false;
   render();
 }
 
 function undo(){
+  if(history.length === 0) return;
   history.pop();
   rebuild();
 }
 
 function rebuild(){
+  const wasSequenceStarted = sequenceStarted;
   possibilities=[];
-  history.forEach(e=>process(e));
+  
+  if(history.length === 0){
+    sequenceStarted = wasSequenceStarted;
+    render();
+    return;
+  }
+  
+  // First event - check if we were in a started sequence
+  if(wasSequenceStarted){
+    for(const [seq,moves] of Object.entries(sequences)){
+      if(moves[0]===history[0])
+        possibilities.push({seq,move:1});
+    }
+  } else {
+    for(const [seq,moves] of Object.entries(sequences)){
+      moves.forEach((m,i)=>{
+        if(m===history[0])
+          possibilities.push({seq,move:i+1});
+      });
+    }
+  }
+  
+  // Process remaining events
+  for(let i=1; i<history.length; i++){
+    possibilities = possibilities
+      .filter(p=>sequences[p.seq][p.move]===history[i])
+      .map(p=>({seq:p.seq,move:p.move+1}));
+  }
+  
   render();
 }
 
@@ -175,7 +205,7 @@ function log(event){
   if(autoStartNextSequence){
     history=[];
     possibilities=[];
-    forcedStart=true;
+    sequenceStarted=true;
     autoStartNextSequence=false;
   }
 
@@ -187,7 +217,7 @@ function log(event){
 function process(event){
   if(!possibilities.length){
     for(const [seq,moves] of Object.entries(sequences)){
-      if(forcedStart){
+      if(sequenceStarted){
         if(moves[0]===event)
           possibilities.push({seq,move:1});
       } else {
@@ -263,8 +293,6 @@ function render(){
     cell.innerHTML=`<small>${i+1}</small><br>${l}`;
     (i<6?top:bottom).appendChild(cell);
   });
-
-  forcedStart=false;
 }
 </script>
 </body>
