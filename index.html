@@ -123,7 +123,10 @@
 
 <!-- TIMELINE -->
 <div class="timeline" id="timeline"></div>
-
+<div class="timeline" id="timelineTop"></div>
+<div class="timeline" id="timelineBottom"></div>
+  
+  
 <!-- CONTROLS -->
 <div class="divider"></div>
 <button class="undo" onclick="undo()">Undo Last Tap</button>
@@ -230,7 +233,7 @@ if (warnIndex === 0) {
 }
   
   
-  moves.forEach((m, i) => {
+moves.forEach((m, i) => {
   const cell = document.createElement("div");
   cell.className = "cell";
 
@@ -240,14 +243,20 @@ if (warnIndex === 0) {
     cell.classList.add("warning");
 
   let letter = abbrev[m];
-if (letter === "A" || letter === "C") letter = `<b>${letter}</b>`;
-cell.innerHTML = `<small>${i + 1}</small><br>${letter}`; 
-if (m === "Axe Ricochet" || m === "Card Realm") {
-  cell.style.border = "2px solid white";
-}
-    timeline.appendChild(cell);
-    
+  if (letter === "A" || letter === "C") letter = `<b>${letter}</b>`;
+  cell.innerHTML = `<small>${i + 1}</small><br>${letter}`;
+
+  if (m === "Axe Ricochet" || m === "Card Realm") {
+    cell.style.border = "2px solid white";
+  }
+
+  if (i < 6) {
+    document.getElementById("timelineTop").appendChild(cell);
+  } else {
+    document.getElementById("timelineBottom").appendChild(cell);
+  }
 });
+  
 
 }
 </script>
