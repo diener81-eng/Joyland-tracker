@@ -80,6 +80,7 @@
     background: #333;
     font-size: 0.8rem;
     line-height: 26px;
+    text-align: center;
   }
 
   .done { background: #666; }
@@ -92,10 +93,8 @@
     font-weight: bold;
     color: #ff9f43;
   }
-#timelineBottom {
-  margin-top: 8px; /* adds vertical spacing between top and bottom timeline rows */
-}
-  
+
+  #timelineBottom { margin-top: 8px; } /* space between rows */
 </style>
 </head>
 
@@ -125,11 +124,9 @@
 <div class="history" id="history"></div>
 
 <!-- TIMELINE -->
-<div class="timeline" id="timeline"></div>
 <div class="timeline" id="timelineTop"></div>
 <div class="timeline" id="timelineBottom"></div>
-  
-  
+
 <!-- CONTROLS -->
 <div class="divider"></div>
 <button class="undo" onclick="undo()">Undo Last Tap</button>
@@ -151,8 +148,7 @@ const abbrev = {
   "Jackpot": "J",
   "Crossroads of Fate": "F"
 };
-  
-  
+
 let history = [];
 let possibilities = [];
 
@@ -160,7 +156,8 @@ function reset() {
   history = [];
   possibilities = [];
   document.getElementById("status").textContent = "Cycle reset.";
-  document.getElementById("timeline").innerHTML = "";
+  document.getElementById("timelineTop").innerHTML = "";
+  document.getElementById("timelineBottom").innerHTML = "";
   document.getElementById("history").innerHTML = "";
   document.getElementById("alert").textContent = "";
 }
@@ -199,11 +196,14 @@ function process(event) {
 
 function render() {
   const status = document.getElementById("status");
-  const timeline = document.getElementById("timeline");
   const historyBox = document.getElementById("history");
   const alert = document.getElementById("alert");
 
-  timeline.innerHTML = "";
+  // clear timeline rows
+  document.getElementById("timelineTop").innerHTML = "";
+  document.getElementById("timelineBottom").innerHTML = "";
+
+  // render history
   historyBox.innerHTML = history
     .map((e, i) => `${i + 1}. ${e}`)
     .join("<br>");
@@ -228,39 +228,37 @@ function render() {
     m === "Axe Ricochet" || m === "Card Realm"
   );
 
-if (warnIndex === 0) {
-  alert.textContent = "🚨 ENABLE 50x NOW 🚨";
-} else if (warnIndex > 0) {
-  status.textContent +=
-    `\nNext ${upcoming[warnIndex]} at move ${p.move + warnIndex + 1}`;
-}
-  
-  
-moves.forEach((m, i) => {
-  const cell = document.createElement("div");
-  cell.className = "cell";
-
-  if (i + 1 < p.move) cell.classList.add("done");
-  if (i + 1 === p.move) cell.classList.add("current");
-  if (warnIndex >= 0 && i + 1 === p.move + warnIndex)
-    cell.classList.add("warning");
-
-  let letter = abbrev[m];
-  if (letter === "A" || letter === "C") letter = `<b>${letter}</b>`;
-  cell.innerHTML = `<small>${i + 1}</small><br>${letter}`;
-
-  if (m === "Axe Ricochet" || m === "Card Realm") {
-    cell.style.border = "2px solid white";
+  if (warnIndex === 0) {
+    alert.textContent = "🚨 ENABLE 50x NOW 🚨";
+  } else if (warnIndex > 0) {
+    status.textContent +=
+      `\nNext ${upcoming[warnIndex]} at move ${p.move + warnIndex + 1}`;
   }
 
-  if (i < 6) {
-    document.getElementById("timelineTop").appendChild(cell);
-  } else {
-    document.getElementById("timelineBottom").appendChild(cell);
-  }
-});
-  
+  // render timeline cells
+  moves.forEach((m, i) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
 
+    if (i + 1 < p.move) cell.classList.add("done");
+    if (i + 1 === p.move) cell.classList.add("current");
+    if (warnIndex >= 0 && i + 1 === p.move + warnIndex)
+      cell.classList.add("warning");
+
+    let letter = abbrev[m];
+    if (letter === "A" || letter === "C") letter = `<b>${letter}</b>`;
+    cell.innerHTML = `<small>${i + 1}</small><br>${letter}`;
+
+    if (m === "Axe Ricochet" || m === "Card Realm") {
+      cell.style.border = "2px solid white";
+    }
+
+    if (i < 6) {
+      document.getElementById("timelineTop").appendChild(cell);
+    } else {
+      document.getElementById("timelineBottom").appendChild(cell);
+    }
+  });
 }
 </script>
 
