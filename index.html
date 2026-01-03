@@ -211,10 +211,14 @@ function render() {
     m === "Axe Ricochet" || m === "Card Realm"
   );
 
-  if (warnIndex === 0) {
-    alert.textContent = "🚨 ENABLE 50x NOW 🚨";
-  }
-
+if (warnIndex === 0) {
+  alert.textContent = "🚨 ENABLE 50x NOW 🚨";
+} else if (warnIndex > 0) {
+  status.textContent +=
+    `\nNext ${upcoming[warnIndex]} at move ${p.move + warnIndex + 1}`;
+}
+  
+  
   moves.forEach((_, i) => {
     const cell = document.createElement("div");
     cell.className = "cell";
