@@ -241,7 +241,10 @@ if (warnIndex === 0) {
   let letter = abbrev[m];
 if (letter === "A" || letter === "C") letter = `<b>${letter}</b>`;
 cell.innerHTML = `<small>${i + 1}</small><br>${letter}`; 
-timeline.appendChild(cell);
+if (m === "Axe Ricochet" || m === "Card Realm") {
+  cell.style.border = "2px solid white";
+}
+    timeline.appendChild(cell);
     
 });
 
