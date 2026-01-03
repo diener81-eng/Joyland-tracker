@@ -106,13 +106,13 @@
 </div>
 
 <!-- INPUT BUTTONS -->
-<button class="tiny" onclick="log('Tiny Adventures')">Tiny Adventures</button>
-<button class="axe" onclick="log('Axe Ricochet')">Axe Ricochet</button>
-<button class="card" onclick="log('Card Realm')">Card Realm</button>
-<button class="block" onclick="log('Blocks Duel')">Blocks Duel</button>
-<button class="jackpot" onclick="log('Jackpot')">Jackpot</button>
-<button class="crossroads" onclick="log('Crossroads of Fate')">Crossroads of Fate</button>
-  
+<button class="tiny" onclick="log('Tiny Adventures')">T · Tiny Adventures</button>
+<button class="crossroads" onclick="log('Crossroads of Fate')">F · Crossroads of Fate</button>
+<button class="axe" onclick="log('Axe Ricochet')">A · Axe Ricochet</button>
+<button class="card" onclick="log('Card Realm')">C · Card Realm</button>
+<button class="block" onclick="log('Blocks Duel')">B · Blocks Duel</button>
+<button class="jackpot" onclick="log('Jackpot')">J · Jackpot</button>
+
 <!-- STATUS -->
 <pre id="status"></pre>
 <div class="alert" id="alert"></div>
@@ -136,6 +136,16 @@ const sequences = {
   4:["Tiny Adventures","Tiny Adventures","Card Realm","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
 };
 
+const abbrev = {
+  "Tiny Adventures": "T",
+  "Axe Ricochet": "A",
+  "Card Realm": "C",
+  "Blocks Duel": "B",
+  "Jackpot": "J",
+  "Crossroads of Fate": "F"
+};
+  
+  
 let history = [];
 let possibilities = [];
 
@@ -219,18 +229,19 @@ if (warnIndex === 0) {
 }
   
   
-  moves.forEach((_, i) => {
-    const cell = document.createElement("div");
-    cell.className = "cell";
+  moves.forEach((m, i) => {
+  const cell = document.createElement("div");
+  cell.className = "cell";
 
-    if (i + 1 < p.move) cell.classList.add("done");
-    if (i + 1 === p.move) cell.classList.add("current");
-    if (warnIndex >= 0 && i + 1 === p.move + warnIndex)
-      cell.classList.add("warning");
+  if (i + 1 < p.move) cell.classList.add("done");
+  if (i + 1 === p.move) cell.classList.add("current");
+  if (warnIndex >= 0 && i + 1 === p.move + warnIndex)
+    cell.classList.add("warning");
 
-    cell.textContent = i + 1;
-    timeline.appendChild(cell);
-  });
+  cell.innerHTML = `<small>${i + 1}</small><br>${abbrev[m]}`;
+  timeline.appendChild(cell);
+});
+
 }
 </script>
 
