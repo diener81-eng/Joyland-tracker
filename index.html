@@ -129,10 +129,10 @@ This is the start of a new sequence
 </button>
 
 <div class="button-grid">
-  <button class="tiny" onclick="log('Tiny Adventures')">T · Tiny</button>
-  <button class="crossroads" onclick="log('Crossroads of Fate')">F · Crossroads</button>
+  <button class="tiny" onclick="log('Tiny Adventures')">Ti · Tiny</button>
+  <button class="crossroads" onclick="log('Crossroads of Fate')">C · Crossroads</button>
   <button class="axe" onclick="log('Axe Ricochet')">A · Axe</button>
-  <button class="card" onclick="log('Card Realm')">C · Card Realm</button>
+  <button class="card" onclick="log('Card Realm')">T · Treasure</button>
   <button class="block" onclick="log('Blocks Duel')">B · Blocks</button>
   <button class="jackpot" onclick="log('Jackpot')">J · Jackpot</button>
 </div>
@@ -159,10 +159,10 @@ const sequences = {
 };
 
 const abbrev = {
-"Tiny Adventures":"T",
-"Crossroads of Fate":"F",
+"Tiny Adventures":"Ti",
+"Crossroads of Fate":"C",
 "Axe Ricochet":"A",
-"Card Realm":"C",
+"Card Realm":"T",
 "Blocks Duel":"B",
 "Jackpot":"J"
 };
@@ -316,7 +316,7 @@ function render(){
     if(warnIndex>=0 && i+1===p.move+warnIndex) cell.classList.add("warning");
 
     let l=abbrev[m];
-    if(l==="A"||l==="C") l=`<b>${l}</b>`;
+    if(l==="A"||l==="T") l=`<b>${l}</b>`;
     cell.innerHTML=`<small>${i+1}</small><br>${l}`;
     (i<6?top:bottom).appendChild(cell);
   });
