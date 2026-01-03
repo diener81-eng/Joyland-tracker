@@ -19,13 +19,13 @@
     font-size: 0.95rem;
     color: #ccc;
     margin-bottom: 1rem;
-    max-width: 500px;
+    max-width: 520px;
     margin-left: auto;
     margin-right: auto;
   }
 
   button {
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     padding: 1rem;
     margin: .35rem;
     width: 90%;
@@ -36,11 +36,11 @@
 
   .tiny { background: #444; }
   .axe { background: #c0392b; }
-  .card { background: #2980b9; }
+  .treasure { background: #2980b9; }
   .block { background: #27ae60; }
   .jackpot { background: #f1c40f; color: #000; }
   .crossroads { background: #16a085; }
-  
+
   .undo { background: #8e44ad; }
   .reset { background: #555; }
 
@@ -68,7 +68,6 @@
   .timeline {
     display: flex;
     justify-content: center;
-    flex-wrap: wrap;
     margin-top: 1rem;
   }
 
@@ -94,7 +93,13 @@
     color: #ff9f43;
   }
 
-  #timelineBottom { margin-top: 8px; } /* space between rows */
+  #timelineBottom { margin-top: 8px; }
+
+  .toggle {
+    margin: .5rem auto;
+    font-size: .95rem;
+    color: #ccc;
+  }
 </style>
 </head>
 
@@ -104,162 +109,214 @@
 
 <div class="desc">
   Tap each event as it appears in Joyland.<br>
-  This tracker finds your sequence and warns you when to 
-  <b>use 50x compass on Axe Ricochet and Card Realm</b>.
+  Uses sequence logic to warn when to use <b>50× compass</b>.<br>
+  Axe Ricochet → always 50×<br>
+  Treasure Hunt → 50× only if you need gold
+</div>
+
+<div class="toggle">
+  <label>
+    <input type="checkbox" id="needGold">
+    I need gold (enable 50× on Treasure Hunt)
+  </label>
 </div>
 
 <!-- INPUT BUTTONS -->
 <button class="tiny" onclick="log('Tiny Adventures')">T · Tiny Adventures</button>
 <button class="crossroads" onclick="log('Crossroads of Fate')">F · Crossroads of Fate</button>
 <button class="axe" onclick="log('Axe Ricochet')">A · Axe Ricochet</button>
-<button class="card" onclick="log('Card Realm')">C · Card Realm</button>
+<button class="treasure" onclick="log('Treasure Hunt')">C · Treasure Hunt (Card Realm)</button>
 <button class="block" onclick="log('Blocks Duel')">B · Blocks Duel</button>
 <button class="jackpot" onclick="log('Jackpot')">J · Jackpot</button>
 
-<!-- STATUS -->
 <pre id="status"></pre>
 <div class="alert" id="alert"></div>
 
-<!-- HISTORY -->
 <div class="history" id="history"></div>
 
-<!-- TIMELINE -->
 <div class="timeline" id="timelineTop"></div>
 <div class="timeline" id="timelineBottom"></div>
 
-<!-- CONTROLS -->
 <div class="divider"></div>
 <button class="undo" onclick="undo()">Undo Last Tap</button>
-<button class="reset" onclick="reset()">Reset Cycle</button>
+<button class="reset" onclick="startBrandNewCycle()">Start Brand New Cycle</button>
 
 <script>
 const sequences = {
-  1:["Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Card Realm","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Jackpot"],
-  2:["Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Card Realm","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Jackpot","Crossroads of Fate","Tiny Adventures","Blocks Duel"],
-  3:["Tiny Adventures","Tiny Adventures","Crossroads of Fate","Card Realm","Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Jackpot","Tiny Adventures","Blocks Duel","Crossroads of Fate"],
-  4:["Tiny Adventures","Tiny Adventures","Card Realm","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
+  1:["Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Jackpot"],
+  2:["Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Jackpot","Crossroads of Fate","Tiny Adventures","Blocks Duel"],
+  3:["Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Jackpot","Tiny Adventures","Blocks Duel","Crossroads of Fate"],
+  4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
 };
 
 const abbrev = {
-  "Tiny Adventures": "T",
-  "Axe Ricochet": "A",
-  "Card Realm": "C",
-  "Blocks Duel": "B",
-  "Jackpot": "J",
-  "Crossroads of Fate": "F"
+  "Tiny Adventures":"T",
+  "Axe Ricochet":"A",
+  "Treasure Hunt":"C",
+  "Blocks Duel":"B",
+  "Jackpot":"J",
+  "Crossroads of Fate":"F"
 };
 
 let history = [];
 let possibilities = [];
+let completedSequences = [];
+let cycleKnownStart = false;
+let awaitingNewSequence = false;
 
-function reset() {
-  history = [];
-  possibilities = [];
-  document.getElementById("status").textContent = "Cycle reset.";
-  document.getElementById("timelineTop").innerHTML = "";
-  document.getElementById("timelineBottom").innerHTML = "";
-  document.getElementById("history").innerHTML = "";
-  document.getElementById("alert").textContent = "";
+/* ---------- persistence ---------- */
+(function loadState(){
+  const s = localStorage.getItem("joylandState");
+  if(!s) return;
+  const d = JSON.parse(s);
+  history = d.history || [];
+  possibilities = d.possibilities || [];
+  completedSequences = d.completedSequences || [];
+  cycleKnownStart = d.cycleKnownStart || false;
+  awaitingNewSequence = d.awaitingNewSequence || false;
+})();
+function saveState(){
+  localStorage.setItem("joylandState", JSON.stringify({
+    history, possibilities, completedSequences,
+    cycleKnownStart, awaitingNewSequence
+  }));
 }
 
-function undo() {
-  if (!history.length) return;
+/* ---------- controls ---------- */
+function startBrandNewCycle(){
+  history=[];
+  possibilities=[];
+  completedSequences=[];
+  cycleKnownStart=true;
+  awaitingNewSequence=false;
+  render();
+}
+
+function undo(){
+  if(!history.length) return;
   history.pop();
   rebuild();
 }
 
-function rebuild() {
-  possibilities = [];
-  history.forEach(e => process(e));
+function rebuild(){
+  possibilities=[];
+  history.forEach(e=>process(e));
   render();
 }
 
-function log(event) {
+function log(event){
+  if(awaitingNewSequence && possibilities.length===1){
+    const s = possibilities[0].seq;
+    if(!completedSequences.includes(s)) completedSequences.push(s);
+    history=[];
+    possibilities=[];
+    awaitingNewSequence=false;
+  }
   history.push(event);
   process(event);
   render();
 }
 
-function process(event) {
-  if (!possibilities.length) {
-    for (const [seq, moves] of Object.entries(sequences)) {
-      moves.forEach((m, i) => {
-        if (m === event) possibilities.push({ seq, move: i + 1 });
+/* ---------- logic ---------- */
+function process(event){
+  if(!possibilities.length){
+    for(const [seq,moves] of Object.entries(sequences)){
+      moves.forEach((m,i)=>{
+        if(m===event) possibilities.push({seq,move:i+1});
       });
     }
   } else {
     possibilities = possibilities
-      .filter(p => sequences[p.seq][p.move] === event)
-      .map(p => ({ seq: p.seq, move: p.move + 1 }));
+      .filter(p=>sequences[p.seq][p.move]===event)
+      .map(p=>({seq:p.seq,move:p.move+1}));
   }
 }
 
-function render() {
-  const status = document.getElementById("status");
-  const historyBox = document.getElementById("history");
-  const alert = document.getElementById("alert");
+/* ---------- render ---------- */
+function render(){
+  const status=document.getElementById("status");
+  const alert=document.getElementById("alert");
+  const historyBox=document.getElementById("history");
+  const top=document.getElementById("timelineTop");
+  const bottom=document.getElementById("timelineBottom");
+  const needGold=document.getElementById("needGold").checked;
 
-  // clear timeline rows
-  document.getElementById("timelineTop").innerHTML = "";
-  document.getElementById("timelineBottom").innerHTML = "";
+  top.innerHTML="";
+  bottom.innerHTML="";
+  alert.textContent="";
 
-  // render history
-  historyBox.innerHTML = history
-    .map((e, i) => `${i + 1}. ${e}`)
-    .join("<br>");
+  historyBox.innerHTML=history.map((e,i)=>`${i+1}. ${e}`).join("<br>");
 
-  status.textContent =
-    `Moves logged: ${history.length}\n` +
+  status.textContent=
+    `Moves logged: ${history.length}\n`+
     `Possible positions: ${possibilities.length}`;
 
-  alert.textContent = "";
-
-  if (possibilities.length !== 1) return;
-
-  const p = possibilities[0];
-  const moves = sequences[p.seq];
-
-  status.textContent =
-    `Sequence ${p.seq}\n` +
-    `Move ${p.move} / 13`;
-
-  const upcoming = moves.slice(p.move);
-  const warnIndex = upcoming.findIndex(m =>
-    m === "Axe Ricochet" || m === "Card Realm"
-  );
-
-  if (warnIndex === 0) {
-    alert.textContent = "🚨 ENABLE 50x NOW 🚨";
-  } else if (warnIndex > 0) {
-    status.textContent +=
-      `\nNext ${upcoming[warnIndex]} at move ${p.move + warnIndex + 1}`;
+  if(possibilities.length!==1){
+    saveState();
+    return;
   }
 
-  // render timeline cells
-  moves.forEach((m, i) => {
-    const cell = document.createElement("div");
-    cell.className = "cell";
+  const p=possibilities[0];
+  const moves=sequences[p.seq];
 
-    if (i + 1 < p.move) cell.classList.add("done");
-    if (i + 1 === p.move) cell.classList.add("current");
-    if (warnIndex >= 0 && i + 1 === p.move + warnIndex)
+  status.textContent=
+    `Sequence ${p.seq}\nMove ${p.move} / 13`;
+
+  if(p.move===1)
+    status.textContent+="\n(Start of a new sequence)";
+
+  if(cycleKnownStart && completedSequences.length===0)
+    status.textContent+="\nCycle status: Brand new";
+  else if(completedSequences.length===0)
+    status.textContent+="\nCycle status: Unknown start";
+  else
+    status.textContent+=`\nCompleted this cycle: ${completedSequences.join(", ")}`;
+
+  const remaining=["1","2","3","4"].filter(
+    s=>!completedSequences.includes(s)&&s!==p.seq
+  );
+  if(cycleKnownStart||completedSequences.length)
+    status.textContent+=`\nPossible upcoming sequences: ${remaining.join(", ")}`;
+
+  const upcoming=moves.slice(p.move);
+  const warnIndex=upcoming.findIndex(
+    m=>m==="Axe Ricochet"||(m==="Treasure Hunt"&&needGold)
+  );
+
+  if(warnIndex===0){
+    alert.textContent="🚨 ENABLE 50x NOW 🚨";
+  } else if(warnIndex>0){
+    status.textContent+=
+      `\nNext ${upcoming[warnIndex]} at move ${p.move+warnIndex+1}`;
+  }
+
+  moves.forEach((m,i)=>{
+    const cell=document.createElement("div");
+    cell.className="cell";
+    if(i+1<p.move) cell.classList.add("done");
+    if(i+1===p.move) cell.classList.add("current");
+    if(warnIndex>=0 && i+1===p.move+warnIndex)
       cell.classList.add("warning");
 
-    let letter = abbrev[m];
-    if (letter === "A" || letter === "C") letter = `<b>${letter}</b>`;
-    cell.innerHTML = `<small>${i + 1}</small><br>${letter}`;
+    let l=abbrev[m];
+    if(l==="A"||l==="C") l=`<b>${l}</b>`;
+    cell.innerHTML=`<small>${i+1}</small><br>${l}`;
 
-    if (m === "Axe Ricochet" || m === "Card Realm") {
-      cell.style.border = "2px solid white";
-    }
+    if(m==="Axe Ricochet"||m==="Treasure Hunt")
+      cell.style.border="2px solid white";
 
-    if (i < 6) {
-      document.getElementById("timelineTop").appendChild(cell);
-    } else {
-      document.getElementById("timelineBottom").appendChild(cell);
-    }
+    (i<6?top:bottom).appendChild(cell);
   });
+
+  if(p.move===13){
+    alert.textContent="✅ Sequence complete. Next tap starts a new sequence.";
+    awaitingNewSequence=true;
+  }
+
+  saveState();
 }
+
+render();
 </script>
 
 </body>
