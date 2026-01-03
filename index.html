@@ -1,242 +1,207 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Joyland Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joyland Tracker</title>
 
-<style>
-body {
-  font-family: system-ui, sans-serif;
-  background:#0f0f0f;
-  color:#fff;
-  text-align:center;
-  padding:1rem;
-}
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+    }
 
-button {
-  font-size:1.05rem;
-  padding:1rem;
-  margin:.35rem;
-  width:90%;
-  max-width:420px;
-  border-radius:12px;
-  border:none;
-}
+    h2 {
+      margin-bottom: 0.3rem;
+    }
 
-.start { background:#2ecc71; color:#000; font-weight:bold; }
-.tiny { background:#444; }
-.crossroads { background:#16a085; }
-.axe { background:#c0392b; }
-.treasure { background:#2980b9; }
-.block { background:#27ae60; }
-.jackpot { background:#f1c40f; color:#000; }
+    .desc {
+      font-size: 0.95rem;
+      color: #ccc;
+      margin-bottom: 1rem;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.4;
+    }
 
-.undo { background:#8e44ad; }
-.reset { background:#555; }
+    .buttons button {
+      margin: 0.25rem;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
 
-.history {
-  max-height:120px;
-  overflow-y:auto;
-  background:#181818;
-  border-radius:10px;
-  padding:.5rem;
-  font-size:.9rem;
-  color:#ccc;
-  margin:.75rem auto;
-  width:90%;
-  max-width:420px;
-  text-align:left;
-}
+    .tiny { background:#555; color:#fff; }
+    .cross { background:#16a085; color:#000; }
+    .axe { background:#c0392b; color:#fff; }
+    .card { background:#8e44ad; color:#fff; }
+    .bonus { background:#f39c12; color:#000; }
+    .fate { background:#2980b9; color:#fff; }
 
-.timeline { display:flex; justify-content:center; margin-top:.5rem; }
-#timelineBottom { margin-top:10px; }
+    .status {
+      margin-top: 0.8rem;
+      font-weight: bold;
+      white-space: pre-line;
+    }
 
-.cell {
-  width:28px;
-  height:28px;
-  margin:4px;
-  border-radius:6px;
-  font-size:.8rem;
-  line-height:28px;
-  background:#333;
-}
+    .alert {
+      margin-top: 0.6rem;
+      color: #ff5555;
+      font-weight: bold;
+    }
 
-.done { filter:brightness(.6); }
-.current { outline:3px solid #fff; }
-.warning { outline:3px solid #e67e22; }
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      margin-top: 10px;
+    }
 
-.alert { margin-top:.5rem; font-size:1.05rem; font-weight:bold; }
-</style>
+    .cell {
+      background:#2a2a2a;
+      padding: 6px 0;
+      border-radius: 6px;
+      font-size: 0.75rem;
+    }
+
+    .cell small {
+      display:block;
+      opacity:0.6;
+    }
+
+    .axeCell {
+      background:#c0392b;
+      outline: 2px solid #fff;
+    }
+
+    .cardCell {
+      background:#8e44ad;
+      outline: 2px solid #fff;
+    }
+
+    .history {
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color:#bbb;
+      text-align:left;
+      max-width:300px;
+      margin-left:auto;
+      margin-right:auto;
+    }
+  </style>
 </head>
 
 <body>
 
 <h2>Joyland Tracker</h2>
 
-<button class="start" onclick="manualStart()">
-This is the start of a new sequence
-</button>
+<div class="desc">
+  Tap each event as it appears in Joyland.<br>
+  You will be warned when to use <b>50× compass</b>.<br>
+  Axe Ricochet → always 50×<br>
+  Treasure Hunt → 50× only if you need gold
+</div>
 
-<button class="tiny" onclick="log('Tiny Adventures')">T · Tiny</button>
-<button class="crossroads" onclick="log('Crossroads of Fate')">F · Crossroads</button>
-<button class="axe" onclick="log('Axe Ricochet')">A · Axe</button>
-<button class="treasure" onclick="log('Treasure Hunt')">C · Treasure Hunt</button>
-<button class="block" onclick="log('Blocks Duel')">B · Blocks</button>
-<button class="jackpot" onclick="log('Jackpot')">J · Jackpot</button>
+<div class="buttons">
+  <button class="tiny" onclick="tap('T')">Tiny</button>
+  <button class="cross" onclick="tap('C')">Crossroads</button>
+  <button class="axe" onclick="tap('A')">Axe Ricochet</button>
+  <button class="card" onclick="tap('R')">Treasure Hunt</button>
+  <button class="bonus" onclick="tap('B')">Bonus</button>
+  <button class="fate" onclick="tap('F')">Fate</button>
+</div>
 
-<pre id="status"></pre>
+<div class="status" id="status"></div>
 <div class="alert" id="alert"></div>
-<div class="history" id="history"></div>
 
 <div class="timeline" id="timelineTop"></div>
 <div class="timeline" id="timelineBottom"></div>
 
-<button class="undo" onclick="undo()">Undo</button>
-<button class="reset" onclick="resetAll()">Reset All</button>
+<div class="history" id="history"></div>
 
 <script>
 const sequences = {
-1:["Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Jackpot"],
-2:["Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Jackpot","Crossroads of Fate","Tiny Adventures","Blocks Duel"],
-3:["Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Jackpot","Tiny Adventures","Blocks Duel","Crossroads of Fate"],
-4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
+  1: ["T","T","C"],
+  2: ["T","T","A"],
+  3: ["T","T","C"],
+  4: ["T","T","R"]
 };
 
-const abbrev = {
-"Tiny Adventures":"T",
-"Crossroads of Fate":"F",
-"Axe Ricochet":"A",
-"Treasure Hunt":"C",
-"Blocks Duel":"B",
-"Jackpot":"J"
+const fullSequence = [
+  "T","T","C","B","A","F",
+  "T","T","R","B","A","F"
+];
+
+const names = {
+  T:"Tiny",
+  C:"Crossroads",
+  A:"Axe Ricochet",
+  R:"Treasure Hunt",
+  B:"Bonus",
+  F:"Fate"
 };
 
-let history=[];
-let possibilities=[];
-let forcedStart=false;
-let autoStartNextSequence=false;
+let history = [];
+let move = 0;
 
-function manualStart(){
-  history=[];
-  possibilities=[];
-  forcedStart=true;
-  render();
-}
+function tap(letter) {
+  history.push(names[letter]);
+  move++;
 
-function resetAll(){
-  history=[];
-  possibilities=[];
-  forcedStart=false;
-  autoStartNextSequence=false;
-  render();
-}
-
-function undo(){
-  history.pop();
-  rebuild();
-}
-
-function rebuild(){
-  possibilities=[];
-  history.forEach(e=>process(e));
-  render();
-}
-
-function log(event){
-  if(autoStartNextSequence){
-    history=[];
-    possibilities=[];
-    forcedStart=true;
-    autoStartNextSequence=false;
+  if (move > 12) {
+    history = [];
+    move = 1;
   }
 
-  history.push(event);
-  process(event);
-  render();
+  render(letter);
 }
 
-function process(event){
-  if(!possibilities.length){
-    for(const [seq,moves] of Object.entries(sequences)){
-      if(forcedStart){
-        if(moves[0]===event)
-          possibilities.push({seq,move:1});
-      } else {
-        moves.forEach((m,i)=>{
-          if(m===event)
-            possibilities.push({seq,move:i+1});
-        });
-      }
-    }
-  } else {
-    possibilities = possibilities
-      .filter(p=>sequences[p.seq][p.move]===event)
-      .map(p=>({seq:p.seq,move:p.move+1}));
+function render(last) {
+  const status = document.getElementById("status");
+  const alert = document.getElementById("alert");
+  const top = document.getElementById("timelineTop");
+  const bottom = document.getElementById("timelineBottom");
+  const historyBox = document.getElementById("history");
+
+  status.textContent = `Move ${move}`;
+  alert.textContent = "";
+
+  if (last === "A") {
+    alert.textContent = "🚨 USE 50× NOW (Axe Ricochet)";
   }
-}
-
-function render(){
-  const status=document.getElementById("status");
-  const alert=document.getElementById("alert");
-  const top=document.getElementById("timelineTop");
-  const bottom=document.getElementById("timelineBottom");
-  const historyBox=document.getElementById("history");
-
-  top.innerHTML="";
-  bottom.innerHTML="";
-  alert.textContent="";
-  historyBox.innerHTML = history.map((e,i)=>`${i+1}. ${e}`).join("<br>");
-
-  if(!history.length){
-    status.textContent="Waiting for input...";
-    return;
+  if (last === "R") {
+    alert.textContent = "⚠️ USE 50× ONLY IF YOU NEED GOLD";
   }
 
-  if(possibilities.length!==1){
-    status.textContent=`Moves logged: ${history.length}\nPossible positions: ${possibilities.length}`;
-    return;
-  }
+  top.innerHTML = "";
+  bottom.innerHTML = "";
 
-  const p=possibilities[0];
-  const moves=sequences[p.seq];
+  fullSequence.forEach((m, i) => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
 
-  status.textContent=`Sequence ${p.seq}\nMove ${p.move} / 13`;
+    let label = m;
+    if (label === "A" || label === "C") label = `<b>${label}</b>`;
 
-  if(p.move===13){
-    alert.textContent="✅ Sequence complete — next tap starts a new sequence";
-    autoStartNextSequence=true;
-  }
+    cell.innerHTML = `<small>${i+1}</small>${label}`;
 
-  const upcoming=moves.slice(p.move);
-  const warnIndex=upcoming.findIndex(m=>m==="Axe Ricochet"||m==="Treasure Hunt");
+    if (m === "A") cell.classList.add("axeCell");
+    if (m === "R") cell.classList.add("cardCell");
 
-  if(warnIndex===0){
-    alert.textContent = upcoming[0]==="Axe Ricochet"
-      ? "🚨 ENABLE 50× NOW (Axe Ricochet)"
-      : "💰 Treasure Hunt — invest 50× if you need gold";
-  } else if(warnIndex>0){
-    status.textContent+=`\nNext ${upcoming[warnIndex]} at move ${p.move+warnIndex+1}`;
-  }
-
-  moves.forEach((m,i)=>{
-    const cell=document.createElement("div");
-    cell.className="cell";
-    if(m==="Axe Ricochet"||m==="Treasure Hunt"){
-      cell.style.background = m==="Axe Ricochet" ? "#c0392b" : "#2980b9";
-      cell.style.border="2px solid white";
-    }
-    if(i+1<p.move) cell.classList.add("done");
-    if(i+1===p.move) cell.classList.add("current");
-    if(warnIndex>=0 && i+1===p.move+warnIndex) cell.classList.add("warning");
-
-    let l=abbrev[m];
-    if(l==="A"||l==="C") l=`<b>${l}</b>`;
-    cell.innerHTML=`<small>${i+1}</small><br>${l}`;
-    (i<6?top:bottom).appendChild(cell);
+    if (i < 6) top.appendChild(cell);
+    else bottom.appendChild(cell);
   });
 
-  forcedStart=false;
+  historyBox.innerHTML = history
+    .map((e,i)=>`${i+1}. ${e}`)
+    .join("<br>");
 }
 </script>
+
 </body>
 </html>
