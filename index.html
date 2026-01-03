@@ -1,4 +1,4 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,6 +42,20 @@
     border-top:1px solid #333;
   }
 
+  .history {
+    max-height:120px;
+    overflow-y:auto;
+    background:#181818;
+    border-radius:10px;
+    padding:.5rem;
+    font-size:.9rem;
+    color:#ccc;
+    margin:.75rem auto;
+    width:90%;
+    max-width:420px;
+    text-align:left;
+  }
+
   .timeline {
     display:flex;
     justify-content:center;
@@ -55,6 +69,7 @@
     border-radius:6px;
     font-size:.8rem;
     line-height:28px;
+    background:#333;
     color:#fff;
   }
 
@@ -92,6 +107,8 @@
 <pre id="status"></pre>
 <div class="alert" id="alert"></div>
 
+<div class="history" id="history"></div>
+
 <div class="timeline" id="timelineTop"></div>
 <div class="timeline" id="timelineBottom"></div>
 
@@ -117,12 +134,8 @@ const abbrev = {
 };
 
 const colors = {
-  "Tiny Adventures":"#444",
-  "Crossroads of Fate":"#16a085",
   "Axe Ricochet":"#c0392b",
-  "Treasure Hunt":"#2980b9",
-  "Blocks Duel":"#27ae60",
-  "Jackpot":"#f1c40f"
+  "Treasure Hunt":"#2980b9"
 };
 
 let history=[];
@@ -185,10 +198,12 @@ function render(){
   const alert=document.getElementById("alert");
   const top=document.getElementById("timelineTop");
   const bottom=document.getElementById("timelineBottom");
+  const historyBox=document.getElementById("history");
 
   top.innerHTML="";
   bottom.innerHTML="";
   alert.textContent="";
+  historyBox.innerHTML = history.map((e,i)=>`${i+1}. ${e}`).join("<br>");
 
   if(!history.length){
     status.textContent = forcedStart
@@ -218,7 +233,7 @@ function render(){
       alert.textContent = "🚨 ENABLE 50× NOW (Axe Ricochet)";
     } else {
       alert.textContent =
-        "💰 Treasure Hunt next — invest 50× if you need gold for treasure pulls";
+        "💰 Treasure Hunt — invest 50× if you need gold";
     }
   } else if(warnIndex > 0){
     status.textContent +=
@@ -228,7 +243,11 @@ function render(){
   moves.forEach((m,i)=>{
     const cell=document.createElement("div");
     cell.className="cell";
-    cell.style.background = colors[m];
+
+    if(colors[m]) {
+      cell.style.background = colors[m];
+      cell.style.border = "2px solid white";
+    }
 
     if(i+1 < p.move) cell.classList.add("done");
     if(i+1 === p.move) cell.classList.add("current");
@@ -238,9 +257,6 @@ function render(){
     let l = abbrev[m];
     if(l==="A"||l==="C") l = `<b>${l}</b>`;
     cell.innerHTML = `<small>${i+1}</small><br>${l}`;
-
-    if(m==="Axe Ricochet"||m==="Treasure Hunt")
-      cell.style.border="2px solid white";
 
     (i<6 ? top : bottom).appendChild(cell);
   });
