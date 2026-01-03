@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,12 +46,12 @@ button {
 .reset { background:#555; }
 
 .history {
-  max-height:120px;
+  max-height:100px;
   overflow-y:auto;
   background:#181818;
   border-radius:10px;
   padding:.5rem;
-  font-size:.9rem;
+  font-size:.85rem;
   color:#ccc;
   margin:.75rem auto;
   width:90%;
@@ -60,7 +60,7 @@ button {
 }
 
 .timeline { display:flex; justify-content:center; margin-top:.5rem; }
-#timelineBottom { margin-top:10px; }
+#timelineBottom { margin-top:10px; margin-bottom:1rem; }
 
 .cell {
   width:28px;
@@ -77,6 +77,14 @@ button {
 .warning { outline:3px solid #e67e22; }
 
 .alert { margin-top:.5rem; font-size:1.05rem; font-weight:bold; }
+
+.controls {
+  position: sticky;
+  bottom: 0;
+  background: #0f0f0f;
+  padding: 1rem 0;
+  margin-top: 1rem;
+}
 </style>
 </head>
 
@@ -98,19 +106,22 @@ This is the start of a new sequence
 <button class="tiny" onclick="log('Tiny Adventures')">T · Tiny</button>
 <button class="crossroads" onclick="log('Crossroads of Fate')">F · Crossroads</button>
 <button class="axe" onclick="log('Axe Ricochet')">A · Axe</button>
-<button class="card" onclick="log('Card Realm')">C · Card Realm</button>
+<button class="card" onclick="log('Card Realm')">C · Card Realm (Treasure Hunt)</button>
 <button class="block" onclick="log('Blocks Duel')">B · Blocks</button>
 <button class="jackpot" onclick="log('Jackpot')">J · Jackpot</button>
 
 <pre id="status"></pre>
 <div class="alert" id="alert"></div>
-<div class="history" id="history"></div>
 
 <div class="timeline" id="timelineTop"></div>
 <div class="timeline" id="timelineBottom"></div>
 
-<button class="undo" onclick="undo()">Undo</button>
-<button class="reset" onclick="resetAll()">Reset All</button>
+<div class="history" id="history"></div>
+
+<div class="controls">
+  <button class="undo" onclick="undo()">Undo</button>
+  <button class="reset" onclick="resetAll()">Reset All</button>
+</div>
 
 <script>
 const sequences = {
