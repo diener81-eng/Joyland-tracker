@@ -238,8 +238,9 @@ if (warnIndex === 0) {
   if (warnIndex >= 0 && i + 1 === p.move + warnIndex)
     cell.classList.add("warning");
 
-  cell.innerHTML = `<small>${i + 1}</small><br>${abbrev[m]}`;
-  timeline.appendChild(cell);
+  let letter = abbrev[m];
+if (letter === "A" || letter === "C") letter = `<b>${letter}</b>`;
+cell.innerHTML = `<small>${i + 1}</small><br>${letter}`; 
 });
 
 }
