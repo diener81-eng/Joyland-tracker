@@ -24,17 +24,35 @@ body {
   line-height:1.6;
 }
 
-button {
-  font-size:1.05rem;
-  padding:1rem;
-  margin:.35rem;
-  width:90%;
-  max-width:420px;
-  border-radius:12px;
-  border:none;
+.button-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 0.5rem 0;
 }
 
-.start { background:#2ecc71; color:#000; font-weight:bold; }
+button {
+  font-size:0.9rem;
+  padding:0.7rem 1rem;
+  border-radius:8px;
+  border:none;
+  flex: 0 1 auto;
+  min-width: 120px;
+}
+
+.start { 
+  background:#2ecc71; 
+  color:#000; 
+  font-weight:bold;
+  width: 100%;
+  max-width: 420px;
+  margin: 0.5rem auto;
+  display: block;
+}
+
 .tiny { background:#444; }
 .crossroads { background:#16a085; }
 .axe { background:#c0392b; }
@@ -84,6 +102,13 @@ button {
   background: #0f0f0f;
   padding: 1rem 0;
   margin-top: 1rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.controls button {
+  min-width: 100px;
 }
 </style>
 </head>
@@ -103,12 +128,14 @@ button {
 This is the start of a new sequence
 </button>
 
-<button class="tiny" onclick="log('Tiny Adventures')">T · Tiny</button>
-<button class="crossroads" onclick="log('Crossroads of Fate')">F · Crossroads</button>
-<button class="axe" onclick="log('Axe Ricochet')">A · Axe</button>
-<button class="card" onclick="log('Card Realm')">C · Card Realm (Treasure Hunt)</button>
-<button class="block" onclick="log('Blocks Duel')">B · Blocks</button>
-<button class="jackpot" onclick="log('Jackpot')">J · Jackpot</button>
+<div class="button-grid">
+  <button class="tiny" onclick="log('Tiny Adventures')">T · Tiny</button>
+  <button class="crossroads" onclick="log('Crossroads of Fate')">F · Crossroads</button>
+  <button class="axe" onclick="log('Axe Ricochet')">A · Axe</button>
+  <button class="card" onclick="log('Card Realm')">C · Card Realm</button>
+  <button class="block" onclick="log('Blocks Duel')">B · Blocks</button>
+  <button class="jackpot" onclick="log('Jackpot')">J · Jackpot</button>
+</div>
 
 <pre id="status"></pre>
 <div class="alert" id="alert"></div>
