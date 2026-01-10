@@ -141,6 +141,8 @@
   <button class="jackpot" onclick="tap('Jackpot')">J · Jackpot</button>
 
   <div class="alert" id="alert"></div>
+  <div class="alert" id="banner"></div>
+
   <pre id="status">Waiting for input…</pre>
 
   <div class="history" id="history"></div>
@@ -341,11 +343,13 @@ function dedupeStates(list){
 function render(){
   const status = document.getElementById("status");
   const alert = document.getElementById("alert");
+  const banner = document.getElementById("banner");
   const historyBox = document.getElementById("history");
   const top = document.getElementById("timelineTop");
   const bottom = document.getElementById("timelineBottom");
 
   alert.textContent = "";
+  banner.textContent = "";
   top.innerHTML = "";
   bottom.innerHTML = "";
 
@@ -387,25 +391,55 @@ function render(){
   // Special “start-of-sequence” guidance after TT:
   // If all states are at move 3 of a start sequence (meaning user tapped T then T),
   // tell them what the 3rd move implies given remaining possibilities.
-  let earlyHint = "";
-  if(inputHistory.length === 2 && inputHistory[0] === "Tiny Adventures" && inputHistory[1] === "Tiny Adventures"){
-    // Consider only hypotheses where we are at move 3 of a sequence start
-    const candidates = inSeqStates.filter(s => sequences[s.seq][0] === "Tiny Adventures" && sequences[s.seq][1] === "Tiny Adventures" && s.move === 3);
-    if(candidates.length){
-      // Group by their move3 event
-      const byThird = {};
-      for(const s of candidates){
-        const third = sequences[s.seq][2]; // move 3
-        byThird[third] = (byThird[third] || new Set());
-        byThird[third].add(s.seq);
+// Special banner after T,T (start-of-sequence) — ONLY if Crossroads is impossible
+let earlyHint = "";
+if (
+  inputHistory.length === 2 &&
+  inputHistory[0] === "Tiny Adventures" &&
+  inputHistory[1] === "Tiny Adventures"
+) {
+  // candidates = hypotheses where we're at move 3 of a sequence that started with T,T
+  const candidates = inSeqStates.filter(s =>
+    sequences[s.seq][0] === "Tiny Adventures" &&
+    sequences[s.seq][1] === "Tiny Adventures" &&
+    s.move === 3
+  );
+
+  if (candidates.length) {
+    const possibleThirdMoves = new Set(candidates.map(s => sequences[s.seq][2]));
+    const hasCrossroads = possibleThirdMoves.has("Crossroads of Fate");
+    const hasAxe = possibleThirdMoves.has("Axe Ricochet");
+    const hasTreasure = possibleThirdMoves.has("Treasure Hunt");
+
+    // Only show the "either Axe or Treasure" banner when Crossroads is eliminated
+    if (!hasCrossroads && (hasAxe || hasTreasure)) {
+      if (hasAxe && hasTreasure) {
+        banner.textContent =
+          "Start-of-sequence: next is either Axe Ricochet (use 50×) or Treasure Hunt (50× if you need gold).";
+      } else if (hasAxe) {
+        banner.textContent =
+          "Start-of-sequence: next will be Axe Ricochet — use 50×.";
+      } else if (hasTreasure) {
+        banner.textContent =
+          "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
       }
-      const lines = Object.entries(byThird).map(([ev, set]) => {
-        const seqs = [...set].sort((a,b)=>a-b).join(", ");
-        return `If next is ${ev}: sequence ${seqs}`;
-      });
-      earlyHint = "\nStart-of-sequence hint (after T,T):\n" + lines.join("\n");
     }
+
+    // Optional: keep the detailed text hint as well (shows what each next move implies)
+    const byThird = {};
+    for (const s of candidates) {
+      const third = sequences[s.seq][2];
+      byThird[third] = (byThird[third] || new Set());
+      byThird[third].add(s.seq);
+    }
+    const lines = Object.entries(byThird).map(([ev, set]) => {
+      const seqs = [...set].sort((a,b)=>a-b).join(", ");
+      return `If next is ${ev}: sequence ${seqs}`;
+    });
+    earlyHint = "\nStart-of-sequence hint (after T,T):\n" + lines.join("\n");
   }
+}
+
 
   if(!locked){
     status.textContent =
