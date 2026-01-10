@@ -1,334 +1,492 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Joyland Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Joyland Tracker</title>
 
-<style>
-body {
-  font-family: system-ui, sans-serif;
-  background:#0f0f0f;
-  color:#fff;
-  text-align:center;
-  padding:1rem;
-}
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #0f0f0f;
+      color: #fff;
+      text-align: center;
+      padding: 1rem;
+    }
 
-.instructions {
-  background:#1a1a1a;
-  border:2px solid #2ecc71;
-  border-radius:12px;
-  padding:1rem;
-  margin:1rem auto;
-  max-width:420px;
-  font-size:0.95rem;
-  line-height:1.6;
-}
+    h2 { margin-bottom: .35rem; }
 
-.button-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem;
-  max-width: 420px;
-  margin: 0 auto;
-  padding: 0.5rem 0;
-}
+    .desc {
+      font-size: 0.95rem;
+      color: #ccc;
+      margin-bottom: 0.9rem;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.4;
+    }
 
-button {
-  font-size:0.9rem;
-  padding:0.7rem 1rem;
-  border-radius:8px;
-  border:none;
-  flex: 0 1 auto;
-  min-width: 120px;
-}
+    button {
+      font-size: 1.02rem;
+      padding: 1rem;
+      margin: .35rem;
+      width: 90%;
+      max-width: 440px;
+      border-radius: 12px;
+      border: none;
+    }
 
-.start { 
-  background:#2ecc71; 
-  color:#000; 
-  font-weight:bold;
-  width: 100%;
-  max-width: 420px;
-  margin: 0.5rem auto;
-  display: block;
-}
+    .startEvent { background:#2ecc71; color:#000; font-weight:700; }
+    .startSeq { background:#27ae60; color:#000; font-weight:700; }
 
-.tiny { background:#444; }
-.crossroads { background:#16a085; }
-.axe { background:#c0392b; }
-.card { background:#2980b9; }
-.block { background:#27ae60; }
-.jackpot { background:#f1c40f; color:#000; }
+    .tiny { background:#444; color:#fff; }
+    .crossroads { background:#16a085; color:#000; }
+    .axeBtn { background:#c0392b; color:#fff; }
+    .treasureBtn { background:#2980b9; color:#fff; }
+    .block { background:#27ae60; color:#000; }
+    .jackpot { background:#f1c40f; color:#000; }
 
-.undo { background:#8e44ad; }
-.reset { background:#555; }
+    .undo { background:#8e44ad; color:#fff; }
+    .reset { background:#555; color:#fff; }
 
-.history {
-  max-height:100px;
-  overflow-y:auto;
-  background:#181818;
-  border-radius:10px;
-  padding:.5rem;
-  font-size:.85rem;
-  color:#ccc;
-  margin:.75rem auto;
-  width:90%;
-  max-width:420px;
-  text-align:left;
-}
+    .divider {
+      margin: 1rem auto;
+      width: 90%;
+      max-width: 440px;
+      border-top: 1px solid #333;
+    }
 
-.timeline { display:flex; justify-content:center; margin-top:.5rem; }
-#timelineBottom { margin-top:10px; margin-bottom:1rem; }
+    pre {
+      white-space: pre-line;
+      text-align: left;
+      margin: .8rem auto 0 auto;
+      width: 90%;
+      max-width: 440px;
+      background: #141414;
+      border-radius: 10px;
+      padding: .7rem .8rem;
+      color: #ddd;
+      font-size: .92rem;
+    }
 
-.cell {
-  width:28px;
-  height:28px;
-  margin:4px;
-  border-radius:6px;
-  font-size:.8rem;
-  line-height:28px;
-  background:#333;
-}
+    .alert {
+      margin: .6rem auto 0 auto;
+      width: 90%;
+      max-width: 440px;
+      font-weight: 700;
+      color: #ff9f43;
+    }
 
-.done { filter:brightness(.6); }
-.current { outline:3px solid #fff; }
-.warning { outline:3px solid #e67e22; }
+    .history {
+      max-height: 120px;
+      overflow-y: auto;
+      background: #181818;
+      border-radius: 10px;
+      padding: .5rem;
+      font-size: .9rem;
+      color: #ccc;
+      margin: .75rem auto;
+      width: 90%;
+      max-width: 440px;
+      text-align: left;
+    }
 
-.alert { 
-  margin-top:.5rem; 
-  font-size:1.05rem; 
-  font-weight:bold;
-  color:#ff3333;
-}
+    .timeline {
+      display: flex;
+      justify-content: center;
+      margin-top: .6rem;
+    }
+    #timelineBottom { margin-top: 10px; }
 
-.controls {
-  position: sticky;
-  bottom: 0;
-  background: #0f0f0f;
-  padding: 1rem 0;
-  margin-top: 1rem;
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-}
+    .cell {
+      width: 28px;
+      height: 28px;
+      margin: 4px;
+      border-radius: 6px;
+      font-size: .8rem;
+      line-height: 28px;
+      background: #333;
+      color: #fff;
+      text-align: center;
+    }
+    .done { filter: brightness(0.6); }
+    .current { outline: 3px solid #fff; }
+    .nextSpecial { outline: 3px solid #e67e22; }
 
-.controls button {
-  min-width: 100px;
-}
-</style>
+    /* Only these two get color */
+    .axeCell { background: #c0392b; border: 2px solid #fff; }
+    .treasureCell { background: #2980b9; border: 2px solid #fff; }
+
+    small { display:block; opacity:.7; line-height: 1; margin-top: 2px; }
+  </style>
 </head>
 
 <body>
+  <h2>Joyland Tracker</h2>
 
-<h2>Joyland Tracker</h2>
+  <div class="desc">
+    Tap each event as it appears in Joyland.<br>
+    You will be warned when to use <b>50× compass</b>.<br>
+    Axe Ricochet → always 50×<br>
+    Treasure Hunt (Card Realm) → invest 50× only if you need gold
+  </div>
 
-<div class="instructions">
-  Tap each event as it appears in Joyland.<br>
-  If you know it's the start of a sequence, tap "This is the start of a new sequence" first.<br>
-  The tracker will narrow down which sequence you're in.<br>
-  When only one possibility remains, the full timeline will be shown.<br>
-  You will be warned when to use <b>50× compass</b>.<br>
-  Axe Ricochet → always 50×<br>
-  Card Realm → 50× only if you need gold
-</div>
+  <button class="startEvent" onclick="startEventReset()">Start Event (cycle reset)</button>
+  <button class="startSeq" onclick="startNewSequenceKnown()">Start New Sequence (I am on move 1)</button>
 
-<button class="start" onclick="manualStart()">
-This is the start of a new sequence
-</button>
+  <button class="tiny" onclick="tap('Tiny Adventures')">T · Tiny Adventures</button>
+  <button class="crossroads" onclick="tap('Crossroads of Fate')">F · Crossroads of Fate</button>
+  <button class="axeBtn" onclick="tap('Axe Ricochet')">A · Axe Ricochet</button>
+  <button class="treasureBtn" onclick="tap('Treasure Hunt')">C · Treasure Hunt (Card Realm)</button>
+  <button class="block" onclick="tap('Blocks Duel')">B · Blocks Duel</button>
+  <button class="jackpot" onclick="tap('Jackpot')">J · Jackpot</button>
 
-<div class="button-grid">
-  <button class="tiny" onclick="log('Tiny Adventures')">Ti · Tiny</button>
-  <button class="crossroads" onclick="log('Crossroads of Fate')">C · Crossroads</button>
-  <button class="axe" onclick="log('Axe Ricochet')">A · Axe</button>
-  <button class="card" onclick="log('Card Realm')">T · Treasure</button>
-  <button class="block" onclick="log('Blocks Duel')">B · Blocks</button>
-  <button class="jackpot" onclick="log('Jackpot')">J · Jackpot</button>
-</div>
+  <div class="alert" id="alert"></div>
+  <pre id="status">Waiting for input…</pre>
 
-<pre id="status"></pre>
-<div class="alert" id="alert"></div>
+  <div class="history" id="history"></div>
 
-<div class="timeline" id="timelineTop"></div>
-<div class="timeline" id="timelineBottom"></div>
+  <div class="timeline" id="timelineTop"></div>
+  <div class="timeline" id="timelineBottom"></div>
 
-<div class="history" id="history"></div>
-
-<div class="controls">
-  <button class="undo" onclick="undo()">Undo</button>
-  <button class="reset" onclick="resetAll()">Reset All</button>
-</div>
+  <div class="divider"></div>
+  <button class="undo" onclick="undo()">Undo Last Tap</button>
+  <button class="reset" onclick="hardReset()">Reset All</button>
 
 <script>
+/* ------------------ Data ------------------ */
 const sequences = {
-1:["Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Card Realm","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Jackpot"],
-2:["Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Card Realm","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Jackpot","Crossroads of Fate","Tiny Adventures","Blocks Duel"],
-3:["Tiny Adventures","Tiny Adventures","Crossroads of Fate","Card Realm","Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Jackpot","Tiny Adventures","Blocks Duel","Crossroads of Fate"],
-4:["Tiny Adventures","Tiny Adventures","Card Realm","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
+  1:["Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Jackpot"],
+  2:["Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Jackpot","Crossroads of Fate","Tiny Adventures","Blocks Duel"],
+  3:["Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Jackpot","Tiny Adventures","Blocks Duel","Crossroads of Fate"],
+  4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
 };
 
 const abbrev = {
-"Tiny Adventures":"Ti",
-"Crossroads of Fate":"C",
-"Axe Ricochet":"A",
-"Card Realm":"T",
-"Blocks Duel":"B",
-"Jackpot":"J"
+  "Tiny Adventures":"T",
+  "Crossroads of Fate":"F",
+  "Axe Ricochet":"A",
+  "Treasure Hunt":"C",
+  "Blocks Duel":"B",
+  "Jackpot":"J"
 };
 
-let history=[];
-let possibilities=[];
-let sequenceStarted=false;
-let autoStartNextSequence=false;
+const ALL_MASK = 0b1111;
+const bit = (seq) => (1 << (seq-1));
 
-function manualStart(){
-  history=[];
-  possibilities=[];
-  sequenceStarted=true;
+/*
+State represents a hypothesis:
+- seq: current sequence id (1..4) OR null if between sequences
+- move: next expected move index (1..13) when in a sequence; or 0 if between sequences
+- doneMask: sequences completed in the CURRENT cycle (bitmask)
+- modeStart: whether we are constrained to start-of-sequence matching for this hypothesis
+*/
+let states = [];
+let inputHistory = []; // user taps (event strings)
+
+/* ------------------ Persistence ------------------ */
+function saveState(){
+  localStorage.setItem("joyland_cycle_tracker", JSON.stringify({ states, inputHistory }));
+}
+function loadState(){
+  const s = localStorage.getItem("joyland_cycle_tracker");
+  if(!s) return false;
+  try{
+    const d = JSON.parse(s);
+    states = d.states || [];
+    inputHistory = d.inputHistory || [];
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ------------------ Init helpers ------------------ */
+function startEventReset(){
+  // user says: new event, cycle definitely reset and new sequence starting
+  inputHistory = [];
+  states = makeStartStates(/*cycleReset=*/true, /*knownStart=*/true);
+  render();
+  saveState();
+}
+
+function startNewSequenceKnown(){
+  // user says: I’m on move 1 of a new sequence, but cycle may be mid-way/unknown
+  inputHistory = [];
+  states = makeStartStates(/*cycleReset=*/false, /*knownStart=*/true);
+  render();
+  saveState();
+}
+
+function hardReset(){
+  inputHistory = [];
+  states = [];
+  localStorage.removeItem("joyland_cycle_tracker");
   render();
 }
 
-function resetAll(){
-  history=[];
-  possibilities=[];
-  sequenceStarted=false;
-  autoStartNextSequence=false;
+function makeStartStates(cycleReset, knownStart){
+  // Start at move1 only.
+  // doneMask:
+  // - if cycleReset: must be 0
+  // - else unknown: could be any mask that does NOT already contain the seq we start (since it can’t repeat in-cycle)
+  const out = [];
+  for(let seq=1; seq<=4; seq++){
+    for(let doneMask=0; doneMask<=ALL_MASK; doneMask++){
+      if(cycleReset && doneMask !== 0) continue;
+      if(doneMask & bit(seq)) continue; // cannot start a seq already completed (in that hypothesis)
+      out.push({ seq, move: 1, doneMask, modeStart: knownStart });
+    }
+  }
+  return out;
+}
+
+/* ------------------ Update logic ------------------ */
+function tap(event){
+  // If no states yet, initialize broadly (unknown start): allow any move position, any doneMask (excluding current seq in doneMask)
+  if(states.length === 0){
+    states = seedUnknownStates(event);
+  } else {
+    states = advanceStatesWithEvent(states, event);
+  }
+
+  inputHistory.push(event);
+  states = dedupeStates(states);
+
   render();
+  saveState();
 }
 
 function undo(){
-  if(history.length === 0) return;
-  history.pop();
-  rebuild();
-}
+  if(inputHistory.length === 0) return;
+  inputHistory.pop();
 
-function rebuild(){
-  const wasSequenceStarted = sequenceStarted;
-  possibilities=[];
-  
-  if(history.length === 0){
-    sequenceStarted = wasSequenceStarted;
-    render();
-    return;
-  }
-  
-  // First event - check if we were in a started sequence
-  if(wasSequenceStarted){
-    for(const [seq,moves] of Object.entries(sequences)){
-      if(moves[0]===history[0])
-        possibilities.push({seq,move:1});
-    }
+  // Rebuild from scratch using a broad seed that respects "we might be mid-anywhere"
+  if(inputHistory.length === 0){
+    // keep prior states? simpler: clear
+    states = [];
   } else {
-    for(const [seq,moves] of Object.entries(sequences)){
-      moves.forEach((m,i)=>{
-        if(m===history[0])
-          possibilities.push({seq,move:i+1});
-      });
+    const first = inputHistory[0];
+    states = seedUnknownStates(first);
+    for(let i=1;i<inputHistory.length;i++){
+      states = advanceStatesWithEvent(states, inputHistory[i]);
+      states = dedupeStates(states);
+      if(states.length === 0) break;
     }
   }
-  
-  // Process remaining events
-  for(let i=1; i<history.length; i++){
-    possibilities = possibilities
-      .filter(p=>sequences[p.seq][p.move]===history[i])
-      .map(p=>({seq:p.seq,move:p.move+1}));
-  }
-  
   render();
+  saveState();
 }
 
-function log(event){
-  if(autoStartNextSequence){
-    history=[];
-    possibilities=[];
-    sequenceStarted=true;
-    autoStartNextSequence=false;
-  }
-
-  history.push(event);
-  process(event);
-  render();
-}
-
-function process(event){
-  if(!possibilities.length){
-    for(const [seq,moves] of Object.entries(sequences)){
-      if(sequenceStarted){
-        if(moves[0]===event)
-          possibilities.push({seq,move:1});
-      } else {
-        moves.forEach((m,i)=>{
-          if(m===event)
-            possibilities.push({seq,move:i+1});
-        });
+function seedUnknownStates(firstEvent){
+  const out = [];
+  for(let seq=1; seq<=4; seq++){
+    const moves = sequences[seq];
+    for(let pos=1; pos<=13; pos++){
+      if(moves[pos-1] !== firstEvent) continue;
+      for(let doneMask=0; doneMask<=ALL_MASK; doneMask++){
+        if(doneMask & bit(seq)) continue; // current seq can't already be "done" in-cycle
+        out.push({ seq, move: pos, doneMask, modeStart: false });
       }
     }
-  } else {
-    possibilities = possibilities
-      .filter(p=>sequences[p.seq][p.move]===event)
-      .map(p=>({seq:p.seq,move:p.move+1}));
   }
+  return out;
 }
 
-function render(){
-  const status=document.getElementById("status");
-  const alert=document.getElementById("alert");
-  const top=document.getElementById("timelineTop");
-  const bottom=document.getElementById("timelineBottom");
-  const historyBox=document.getElementById("history");
-
-  top.innerHTML="";
-  bottom.innerHTML="";
-  alert.textContent="";
-  historyBox.innerHTML = history.map((e,i)=>`${i+1}. ${e}`).join("<br>");
-
-  if(!history.length){
-    status.textContent="Waiting for input...";
-    return;
-  }
-
-  if(possibilities.length!==1){
-    status.textContent=`Moves logged: ${history.length}\nPossible positions: ${possibilities.length}`;
-    return;
-  }
-
-  const p=possibilities[0];
-  const moves=sequences[p.seq];
-
-  status.textContent=`Sequence ${p.seq}\nMove ${p.move} / 13`;
-
-  if(p.move===13){
-    alert.textContent="✅ Sequence complete — next tap starts a new sequence";
-    autoStartNextSequence=true;
-  }
-
-  const upcoming=moves.slice(p.move);
-  const warnIndex=upcoming.findIndex(m=>m==="Axe Ricochet"||m==="Card Realm");
-
-  if(warnIndex===0){
-    alert.textContent = upcoming[0]==="Axe Ricochet"
-      ? "🚨 ENABLE 50× NOW (Axe Ricochet)"
-      : "💰 Card Realm — invest 50× if you need gold";
-  } else if(warnIndex>0){
-    status.textContent+=`\nNext ${upcoming[warnIndex]} at move ${p.move+warnIndex+1}`;
-  }
-
-  moves.forEach((m,i)=>{
-    const cell=document.createElement("div");
-    cell.className="cell";
-    if(m==="Axe Ricochet"||m==="Card Realm"){
-      cell.style.background = m==="Axe Ricochet" ? "#c0392b" : "#2980b9";
-      cell.style.border="2px solid white";
+function advanceStatesWithEvent(curStates, event){
+  const next = [];
+  for(const s of curStates){
+    // If we are between sequences (move=0 or seq=null), we must pick a new seq not in doneMask,
+    // with event matching move1.
+    if(s.seq === null || s.move === 0){
+      const doneMaskNorm = (s.doneMask === ALL_MASK) ? 0 : s.doneMask; // if cycle complete, it resets
+      for(let seq=1; seq<=4; seq++){
+        if(doneMaskNorm & bit(seq)) continue; // can't repeat within cycle
+        if(sequences[seq][0] !== event) continue; // must match move1
+        next.push({ seq, move: 1, doneMask: doneMaskNorm, modeStart: true });
+      }
+      continue;
     }
-    if(i+1<p.move) cell.classList.add("done");
-    if(i+1===p.move) cell.classList.add("current");
-    if(warnIndex>=0 && i+1===p.move+warnIndex) cell.classList.add("warning");
 
-    let l=abbrev[m];
-    if(l==="A"||l==="T") l=`<b>${l}</b>`;
-    cell.innerHTML=`<small>${i+1}</small><br>${l}`;
-    (i<6?top:bottom).appendChild(cell);
-  });
+    // In a sequence
+    const expected = sequences[s.seq][s.move - 1];
+    if(expected !== event) continue;
+
+    // Advance move
+    const newMove = s.move + 1;
+
+    // If we just completed move 13, transition to between-sequences state.
+    if(newMove === 14){
+      let newDone = s.doneMask | bit(s.seq);
+      // if we completed all 4, we don't immediately reset until we need the next seq;
+      // but we can normalize later (between-seq handler does it).
+      next.push({ seq: null, move: 0, doneMask: newDone, modeStart: true });
+    } else {
+      next.push({ seq: s.seq, move: newMove, doneMask: s.doneMask, modeStart: s.modeStart });
+    }
+  }
+  return next;
 }
+
+function dedupeStates(list){
+  const seen = new Set();
+  const out = [];
+  for(const s of list){
+    const k = `${s.seq ?? "X"}|${s.move}|${s.doneMask}|${s.modeStart?1:0}`;
+    if(seen.has(k)) continue;
+    seen.add(k);
+    out.push(s);
+  }
+  return out;
+}
+
+/* ------------------ Rendering ------------------ */
+function render(){
+  const status = document.getElementById("status");
+  const alert = document.getElementById("alert");
+  const historyBox = document.getElementById("history");
+  const top = document.getElementById("timelineTop");
+  const bottom = document.getElementById("timelineBottom");
+
+  alert.textContent = "";
+  top.innerHTML = "";
+  bottom.innerHTML = "";
+
+  historyBox.innerHTML = inputHistory
+    .map((e,i)=>`${i+1}. ${e}`)
+    .join("<br>");
+
+  if(states.length === 0){
+    status.textContent = inputHistory.length
+      ? "No match. Use Reset All or Start New Sequence / Start Event."
+      : "Waiting for input…";
+    return;
+  }
+
+  // Compute aggregate possibilities
+  const inSeqStates = states.filter(s => s.seq !== null && s.move !== 0);
+  const betweenStates = states.filter(s => s.seq === null || s.move === 0);
+
+  const seqSet = new Set(inSeqStates.map(s => s.seq));
+  const moveSet = new Set(inSeqStates.map(s => s.move));
+  const doneMasks = new Set(states.map(s => s.doneMask));
+
+  const locked = (seqSet.size === 1 && moveSet.size === 1 && betweenStates.length === 0);
+
+  // Build cycle “remaining sequences” hint (when we can)
+  let remainingHint = "";
+  if(doneMasks.size === 1){
+    const dm = [...doneMasks][0];
+    const dmNorm = (dm === ALL_MASK) ? 0 : dm;
+    const doneList = [1,2,3,4].filter(x => dmNorm & bit(x));
+    const remaining = [1,2,3,4].filter(x => !(dmNorm & bit(x)));
+    remainingHint =
+      `Cycle done: ${doneList.length ? doneList.join(", ") : "(none)"}\n` +
+      `Remaining this cycle: ${remaining.join(", ")}`;
+  } else {
+    remainingHint = "Cycle done/remaining: unknown (tracking multiple possibilities)";
+  }
+
+  // Special “start-of-sequence” guidance after TT:
+  // If all states are at move 3 of a start sequence (meaning user tapped T then T),
+  // tell them what the 3rd move implies given remaining possibilities.
+  let earlyHint = "";
+  if(inputHistory.length === 2 && inputHistory[0] === "Tiny Adventures" && inputHistory[1] === "Tiny Adventures"){
+    // Consider only hypotheses where we are at move 3 of a sequence start
+    const candidates = inSeqStates.filter(s => sequences[s.seq][0] === "Tiny Adventures" && sequences[s.seq][1] === "Tiny Adventures" && s.move === 3);
+    if(candidates.length){
+      // Group by their move3 event
+      const byThird = {};
+      for(const s of candidates){
+        const third = sequences[s.seq][2]; // move 3
+        byThird[third] = (byThird[third] || new Set());
+        byThird[third].add(s.seq);
+      }
+      const lines = Object.entries(byThird).map(([ev, set]) => {
+        const seqs = [...set].sort((a,b)=>a-b).join(", ");
+        return `If next is ${ev}: sequence ${seqs}`;
+      });
+      earlyHint = "\nStart-of-sequence hint (after T,T):\n" + lines.join("\n");
+    }
+  }
+
+  if(!locked){
+    status.textContent =
+      `Moves logged: ${inputHistory.length}\n` +
+      `Possible states: ${states.length}\n` +
+      `Possible sequences: ${[...seqSet].sort((a,b)=>a-b).join(", ") || "(between sequences)"}\n` +
+      `Possible moves: ${[...moveSet].sort((a,b)=>a-b).join(", ") || "(between sequences)"}\n\n` +
+      remainingHint +
+      earlyHint;
+    return;
+  }
+
+  // Locked state
+  const s = inSeqStates[0];
+  const seq = s.seq;
+  const move = s.move;
+  const moves = sequences[seq];
+
+  // Next special (Axe always; Treasure always shown as conditional guidance)
+  const upcoming = moves.slice(move - 1); // include current position
+  let nextSpecialIndex = -1;
+  for(let i=0;i<upcoming.length;i++){
+    if(upcoming[i] === "Axe Ricochet" || upcoming[i] === "Treasure Hunt"){
+      nextSpecialIndex = i;
+      break;
+    }
+  }
+
+  status.textContent =
+    `Sequence ${seq}\n` +
+    `Move ${move} / 13\n\n` +
+    remainingHint;
+
+  // Alerts for current move special
+  const currentEvent = moves[move - 1];
+  if(currentEvent === "Axe Ricochet"){
+    alert.textContent = "🚨 ENABLE 50× NOW (Axe Ricochet)";
+  } else if(currentEvent === "Treasure Hunt"){
+    alert.textContent = "💰 Treasure Hunt now — invest 50× if you need gold";
+  } else if(nextSpecialIndex > 0){
+    const nextEv = upcoming[nextSpecialIndex];
+    const atMove = move + nextSpecialIndex;
+    if(nextEv === "Axe Ricochet"){
+      status.textContent += `\n\nNext Axe Ricochet at move ${atMove}`;
+    } else {
+      status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
+    }
+  }
+
+  // Timeline: only A & C colored
+  for(let i=1;i<=13;i++){
+    const ev = moves[i-1];
+    const cell = document.createElement("div");
+    cell.className = "cell";
+
+    if(ev === "Axe Ricochet") cell.classList.add("axeCell");
+    if(ev === "Treasure Hunt") cell.classList.add("treasureCell");
+
+    if(i < move) cell.classList.add("done");
+    if(i === move) cell.classList.add("current");
+
+    // highlight the next special cell
+    if(nextSpecialIndex >= 0 && i === (move + nextSpecialIndex)){
+      cell.classList.add("nextSpecial");
+    }
+
+    let l = abbrev[ev];
+    if(l === "A" || l === "C") l = `<b>${l}</b>`;
+    cell.innerHTML = `<small>${i}</small>${l}`;
+
+    (i <= 6 ? top : bottom).appendChild(cell);
+  }
+}
+
+/* Load saved state on startup */
+if(!loadState()){
+  states = [];
+  inputHistory = [];
+}
+render();
 </script>
+
 </body>
 </html>
