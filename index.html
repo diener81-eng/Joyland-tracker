@@ -465,7 +465,8 @@ const moves = sequences[seq];
 
 
   // Next special (Axe always; Treasure always shown as conditional guidance)
-  const upcoming = moves.slice(Math.max(0, currentMove - 1));
+  const upcoming = moves.slice(Math.max(0, nextExpected - 1)); // start at NEXT event
+
  // include current position
   let nextSpecialIndex = -1;
   for(let i=0;i<upcoming.length;i++){
@@ -481,20 +482,23 @@ const moves = sequences[seq];
     remainingHint;
 
   // Alerts for current move special
-  const currentEvent = moves[currentMove - 1];
-  if(currentEvent === "Axe Ricochet"){
-    alert.textContent = "🚨 ENABLE 50× NOW (Axe Ricochet)";
-  } else if(currentEvent === "Treasure Hunt"){
-    alert.textContent = "💰 Treasure Hunt now — invest 50× if you need gold";
-  } else if(nextSpecialIndex > 0){
-    const nextEv = upcoming[nextSpecialIndex];
-    const atMove = currentMove + nextSpecialIndex;
-    if(nextEv === "Axe Ricochet"){
-      status.textContent += `\n\nNext Axe Ricochet at move ${atMove}`;
-    } else {
-      status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
-    }
+// Alerts for NEXT move special (so you can set 50× before it happens)
+const nextEvent = moves[nextExpected - 1];
+
+if (nextEvent === "Axe Ricochet") {
+  alert.textContent = "🚨 ENABLE 50× NOW (Axe Ricochet is next)";
+} else if (nextEvent === "Treasure Hunt") {
+  alert.textContent = "💰 Treasure Hunt is next — invest 50× if you need gold";
+} else if (nextSpecialIndex >= 0) {
+  const nextEv = upcoming[nextSpecialIndex];
+  const atMove = nextExpected + nextSpecialIndex; // because upcoming starts at nextExpected
+  if (nextEv === "Axe Ricochet") {
+    status.textContent += `\n\nNext Axe Ricochet at move ${atMove}`;
+  } else {
+    status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
   }
+}
+
 
   // Timeline: only A & C colored
   for(let i=1;i<=13;i++){
@@ -508,9 +512,10 @@ const moves = sequences[seq];
 if(i < currentMove) cell.classList.add("done");
 if(i === currentMove) cell.classList.add("current");
 
-if(nextSpecialIndex >= 0 && i === (currentMove + nextSpecialIndex)){
+if (nextSpecialIndex >= 0 && i === (nextExpected + nextSpecialIndex)) {
   cell.classList.add("nextSpecial");
 }
+
 
 
     let l = abbrev[ev];
