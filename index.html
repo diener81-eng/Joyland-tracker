@@ -117,6 +117,30 @@
     .treasureCell { background: #2980b9; border: 2px solid #fff; }
 
     small { display:block; opacity:.7; line-height: 1; margin-top: 2px; }
+
+    /* Cycle badges */
+    #cycleStatus {
+      margin: 8px auto 0 auto;
+      width: 90%;
+      max-width: 440px;
+      text-align: left;
+      font-size: 13px;
+      color: #aaa;
+      line-height: 1.35;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      margin: 2px 6px 2px 0;
+      border-radius: 999px;
+      border: 1px solid #444;
+      font-size: 12px;
+      color: #ddd;
+    }
+    .badge.done { border-color: #2ecc71; color: #2ecc71; }
+    .badge.rem { border-color: #666; color: #bbb; }
+    .badge.unk { border-color: #888; color: #bbb; }
+    .badgeRow { margin-top: 4px; }
   </style>
 </head>
 
@@ -144,6 +168,7 @@
   <div class="alert" id="banner"></div>
 
   <pre id="status">Waiting for input…</pre>
+  <div id="cycleStatus"></div>
 
   <div class="history" id="history"></div>
 
@@ -163,8 +188,7 @@ const sequences = {
   4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
 };
 
-const VERSION = "1.10.1";
-
+const VERSION = "1.10.2";
 
 const abbrev = {
   "Tiny Adventures":"T",
@@ -178,28 +202,18 @@ const abbrev = {
 const ALL_MASK = 0b1111;
 const bit = (seq) => (1 << (seq-1));
 
-/*
-State represents a hypothesis:
-- seq: current sequence id (1..4) OR null if between sequences
-- move: next expected move index (1..13) when in a sequence; or 0 if between sequences
-- doneMask: sequences completed in the CURRENT cycle (bitmask)
-- modeStart: whether we are constrained to start-of-sequence matching for this hypothesis
-*/
 let states = [];
-let inputHistory = []; // user taps (event strings)
-let cycleLocked = false; // becomes true once we’ve observed enough to trust cycle context
-let statesStack = [];       // snapshots of states after each tap
-let cycleLockedStack = [];  // snapshots of cycleLocked after each tap
+let inputHistory = [];
+let cycleLocked = false;
+let statesStack = [];
+let cycleLockedStack = [];
 
 /* ------------------ Persistence ------------------ */
 function saveState(){
   localStorage.setItem(
-  "joyland_cycle_tracker",
-  JSON.stringify({ states, inputHistory, cycleLocked, statesStack, cycleLockedStack })
-);
-
-
-
+    "joyland_cycle_tracker",
+    JSON.stringify({ states, inputHistory, cycleLocked, statesStack, cycleLockedStack })
+  );
 }
 
 function loadState(){
@@ -207,22 +221,20 @@ function loadState(){
   if(!s) return false;
   try{
     const d = JSON.parse(s);
-states = d.states || [];
-inputHistory = d.inputHistory || [];
-cycleLocked = d.cycleLocked || false;
-statesStack = d.statesStack || [];
-cycleLockedStack = d.cycleLockedStack || [];
-
-return true;
-
+    states = d.states || [];
+    inputHistory = d.inputHistory || [];
+    cycleLocked = d.cycleLocked || false;
+    statesStack = d.statesStack || [];
+    cycleLockedStack = d.cycleLockedStack || [];
+    return true;
   }catch(e){ return false; }
 }
 
 /* ------------------ Init helpers ------------------ */
 function startEventReset(){
-  // user says: new event, cycle definitely reset and new sequence starting
   inputHistory = [];
-  states = makeStartStates(/*cycleReset=*/true, /*knownStart=*/true);
+  states = makeStartStates(true, true);
+  cycleLocked = false;
 
   statesStack = [];
   cycleLockedStack = [];
@@ -230,12 +242,10 @@ function startEventReset(){
   render();
   saveState();
 }
-
 
 function startNewSequenceKnown(){
-  // user says: I’m on move 1 of a new sequence, but cycle may be mid-way/unknown
   inputHistory = [];
-  states = makeStartStates(/*cycleReset=*/false, /*knownStart=*/true);
+  states = makeStartStates(false, true);
 
   statesStack = [];
   cycleLockedStack = [];
@@ -243,7 +253,6 @@ function startNewSequenceKnown(){
   render();
   saveState();
 }
-
 
 function hardReset(){
   inputHistory = [];
@@ -257,17 +266,12 @@ function hardReset(){
   render();
 }
 
-
 function makeStartStates(cycleReset, knownStart){
-  // Start at move1 only.
-  // doneMask:
-  // - if cycleReset: must be 0
-  // - else unknown: could be any mask that does NOT already contain the seq we start (since it can’t repeat in-cycle)
   const out = [];
   for(let seq=1; seq<=4; seq++){
     for(let doneMask=0; doneMask<=ALL_MASK; doneMask++){
       if(cycleReset && doneMask !== 0) continue;
-      if(doneMask & bit(seq)) continue; // cannot start a seq already completed (in that hypothesis)
+      if(doneMask & bit(seq)) continue;
       out.push({ seq, move: 1, doneMask, modeStart: knownStart });
     }
   }
@@ -276,7 +280,6 @@ function makeStartStates(cycleReset, knownStart){
 
 /* ------------------ Update logic ------------------ */
 function tap(event){
-  // If no states yet, initialize broadly (unknown start): allow any move position, any doneMask (excluding current seq in doneMask)
   if(states.length === 0){
     states = seedUnknownStates(event);
   } else {
@@ -285,21 +288,19 @@ function tap(event){
 
   inputHistory.push(event);
   states = dedupeStates(states);
-if (cycleLocked) {
-  // Keep only the most consistent cycle interpretation
-  const counts = new Map();
-  for (const s of states) {
-    counts.set(s.doneMask, (counts.get(s.doneMask) || 0) + 1);
+
+  if (cycleLocked) {
+    const counts = new Map();
+    for (const s of states) counts.set(s.doneMask, (counts.get(s.doneMask) || 0) + 1);
+    let bestMask = null, bestCount = -1;
+    for (const [m,c] of counts.entries()) {
+      if (c > bestCount) { bestCount = c; bestMask = m; }
+    }
+    states = states.filter(s => s.doneMask === bestMask);
   }
-  let bestMask = null, bestCount = -1;
-  for (const [m,c] of counts.entries()) {
-    if (c > bestCount) { bestCount = c; bestMask = m; }
-  }
-  states = states.filter(s => s.doneMask === bestMask);
-}
-// Save snapshot for Undo (deep copy so it doesn't mutate)
-statesStack.push(JSON.parse(JSON.stringify(states)));
-cycleLockedStack.push(cycleLocked);
+
+  statesStack.push(JSON.parse(JSON.stringify(states)));
+  cycleLockedStack.push(cycleLocked);
 
   render();
   saveState();
@@ -308,19 +309,15 @@ cycleLockedStack.push(cycleLocked);
 function undo(){
   if(inputHistory.length === 0) return;
 
-  // remove last input
   inputHistory.pop();
 
-  // remove last snapshot
   if (statesStack.length > 0) statesStack.pop();
   if (cycleLockedStack.length > 0) cycleLockedStack.pop();
 
-  // restore previous snapshot
   if (statesStack.length > 0) {
     states = JSON.parse(JSON.stringify(statesStack[statesStack.length - 1]));
     cycleLocked = cycleLockedStack[cycleLockedStack.length - 1] || false;
   } else {
-    // no snapshot = nothing tracked
     states = [];
     cycleLocked = false;
   }
@@ -329,7 +326,6 @@ function undo(){
   saveState();
 }
 
-
 function seedUnknownStates(firstEvent){
   const out = [];
   for(let seq=1; seq<=4; seq++){
@@ -337,7 +333,7 @@ function seedUnknownStates(firstEvent){
     for(let pos=1; pos<=13; pos++){
       if(moves[pos-1] !== firstEvent) continue;
       for(let doneMask=0; doneMask<=ALL_MASK; doneMask++){
-        if(doneMask & bit(seq)) continue; // current seq can't already be "done" in-cycle
+        if(doneMask & bit(seq)) continue;
         out.push({ seq, move: pos, doneMask, modeStart: false });
       }
     }
@@ -348,30 +344,23 @@ function seedUnknownStates(firstEvent){
 function advanceStatesWithEvent(curStates, event){
   const next = [];
   for(const s of curStates){
-    // If we are between sequences (move=0 or seq=null), we must pick a new seq not in doneMask,
-    // with event matching move1.
     if(s.seq === null || s.move === 0){
-      const doneMaskNorm = (s.doneMask === ALL_MASK) ? 0 : s.doneMask; // if cycle complete, it resets
+      const doneMaskNorm = (s.doneMask === ALL_MASK) ? 0 : s.doneMask;
       for(let seq=1; seq<=4; seq++){
-        if(doneMaskNorm & bit(seq)) continue; // can't repeat within cycle
-        if(sequences[seq][0] !== event) continue; // must match move1
+        if(doneMaskNorm & bit(seq)) continue;
+        if(sequences[seq][0] !== event) continue;
         next.push({ seq, move: 2, doneMask: doneMaskNorm, modeStart: true });
       }
       continue;
     }
 
-    // In a sequence
     const expected = sequences[s.seq][s.move - 1];
     if(expected !== event) continue;
 
-    // Advance move
     const newMove = s.move + 1;
 
-    // If we just completed move 13, transition to between-sequences state.
     if(newMove === 14){
       let newDone = s.doneMask | bit(s.seq);
-      // if we completed all 4, we don't immediately reset until we need the next seq;
-      // but we can normalize later (between-seq handler does it).
       next.push({ seq: null, move: 0, doneMask: newDone, modeStart: true });
     } else {
       next.push({ seq: s.seq, move: newMove, doneMask: s.doneMask, modeStart: s.modeStart });
@@ -393,8 +382,14 @@ function dedupeStates(list){
 }
 
 /* ------------------ Rendering ------------------ */
+function badgeList(nums, cls){
+  if (!nums.length) return `<span class="badge ${cls}">none</span>`;
+  return nums.map(n => `<span class="badge ${cls}">${n}</span>`).join("");
+}
+
 function render(){
   const status = document.getElementById("status");
+  const cycleStatus = document.getElementById("cycleStatus");
   const alert = document.getElementById("alert");
   const banner = document.getElementById("banner");
   const historyBox = document.getElementById("history");
@@ -406,107 +401,111 @@ function render(){
   top.innerHTML = "";
   bottom.innerHTML = "";
 
-  historyBox.innerHTML = inputHistory
-    .map((e,i)=>`${i+1}. ${e}`)
-    .join("<br>");
+  historyBox.innerHTML = inputHistory.map((e,i)=>`${i+1}. ${e}`).join("<br>");
 
   if(states.length === 0){
     status.textContent = inputHistory.length
       ? "No match. Use Reset All or Start New Sequence / Start Event."
       : "Waiting for input…";
+    cycleStatus.innerHTML = `Cycle status: <b>${cycleLocked ? "LOCKED" : "UNKNOWN"}</b>`;
     return;
   }
 
-  // Compute aggregate possibilities
   const inSeqStates = states.filter(s => s.seq !== null && s.move !== 0);
   const betweenStates = states.filter(s => s.seq === null || s.move === 0);
 
   const seqSet = new Set(inSeqStates.map(s => s.seq));
-if (seqSet.size === 0 && betweenStates.length > 0) {
-  // show which sequences could be next based on doneMask rules
-  const possibleNext = new Set();
-  for (const st of betweenStates) {
-    const dmNorm = (st.doneMask === ALL_MASK) ? 0 : st.doneMask;
-    for (let seq=1; seq<=4; seq++) {
-      if (dmNorm & bit(seq)) continue;
-      possibleNext.add(seq);
+  if (seqSet.size === 0 && betweenStates.length > 0) {
+    const possibleNext = new Set();
+    for (const st of betweenStates) {
+      const dmNorm = (st.doneMask === ALL_MASK) ? 0 : st.doneMask;
+      for (let seq=1; seq<=4; seq++) {
+        if (dmNorm & bit(seq)) continue;
+        possibleNext.add(seq);
+      }
     }
+    possibleNext.forEach(x => seqSet.add(x));
   }
-  // overwrite display set to show next candidates
-  possibleNext.forEach(x => seqSet.add(x));
-}
 
   const moveSet = new Set(inSeqStates.map(s => s.move));
   const doneMasks = new Set(states.map(s => s.doneMask));
-
   const locked = (seqSet.size === 1 && moveSet.size === 1 && betweenStates.length === 0);
 
-  // Build cycle “remaining sequences” hint (when we can)
-  let remainingHint = "";
-  if(doneMasks.size === 1){
+  // Cycle badges (only "known" if doneMasks is consistent)
+  let completedNums = [];
+  let remainingNums = [];
+  let cycleKnown = (doneMasks.size === 1);
+
+  if (cycleKnown) {
     const dm = [...doneMasks][0];
     const dmNorm = (dm === ALL_MASK) ? 0 : dm;
-    const doneList = [1,2,3,4].filter(x => dmNorm & bit(x));
-    const remaining = [1,2,3,4].filter(x => !(dmNorm & bit(x)));
+    completedNums = [1,2,3,4].filter(x => dmNorm & bit(x));
+    remainingNums = [1,2,3,4].filter(x => !(dmNorm & bit(x)));
+  }
+
+  cycleStatus.innerHTML =
+    `Cycle status: <b>${cycleLocked ? "LOCKED" : "UNKNOWN"}</b><br>` +
+    (cycleKnown
+      ? `<div class="badgeRow">Completed this cycle: ${badgeList(completedNums, "done")}</div>` +
+        `<div class="badgeRow">Remaining: ${badgeList(remainingNums, "rem")}</div>`
+      : `<div class="badgeRow"><span class="badge unk">Completed/Remaining: unknown</span></div>`
+    );
+
+  // Remaining hint text (for status block)
+  let remainingHint = "";
+  if(cycleKnown){
     remainingHint =
-      `Cycle done: ${doneList.length ? doneList.join(", ") : "(none)"}\n` +
-      `Remaining this cycle: ${remaining.join(", ")}`;
+      `Cycle done: ${completedNums.length ? completedNums.join(", ") : "(none)"}\n` +
+      `Remaining this cycle: ${remainingNums.join(", ")}`;
   } else {
     remainingHint = "Cycle done/remaining: unknown (tracking multiple possibilities)";
   }
 
-  // Special “start-of-sequence” guidance after TT:
-  // If all states are at move 3 of a start sequence (meaning user tapped T then T),
-  // tell them what the 3rd move implies given remaining possibilities.
-// Special banner after T,T (start-of-sequence) — ONLY if Crossroads is impossible
-let earlyHint = "";
-if (
-  inputHistory.length === 2 &&
-  inputHistory[0] === "Tiny Adventures" &&
-  inputHistory[1] === "Tiny Adventures"
-) {
-  // candidates = hypotheses where we're at move 3 of a sequence that started with T,T
-  const candidates = inSeqStates.filter(s =>
-    sequences[s.seq][0] === "Tiny Adventures" &&
-    sequences[s.seq][1] === "Tiny Adventures" &&
-    s.move === 3
-  );
+  // Start-of-sequence banner after T,T (only if Crossroads is impossible)
+  let earlyHint = "";
+  if (
+    inputHistory.length === 2 &&
+    inputHistory[0] === "Tiny Adventures" &&
+    inputHistory[1] === "Tiny Adventures"
+  ) {
+    const candidates = inSeqStates.filter(s =>
+      sequences[s.seq][0] === "Tiny Adventures" &&
+      sequences[s.seq][1] === "Tiny Adventures" &&
+      s.move === 3
+    );
 
-  if (candidates.length) {
-    const possibleThirdMoves = new Set(candidates.map(s => sequences[s.seq][2]));
-    const hasCrossroads = possibleThirdMoves.has("Crossroads of Fate");
-    const hasAxe = possibleThirdMoves.has("Axe Ricochet");
-    const hasTreasure = possibleThirdMoves.has("Treasure Hunt");
+    if (candidates.length) {
+      const possibleThirdMoves = new Set(candidates.map(s => sequences[s.seq][2]));
+      const hasCrossroads = possibleThirdMoves.has("Crossroads of Fate");
+      const hasAxe = possibleThirdMoves.has("Axe Ricochet");
+      const hasTreasure = possibleThirdMoves.has("Treasure Hunt");
 
-    // Only show the "either Axe or Treasure" banner when Crossroads is eliminated
-    if (!hasCrossroads && (hasAxe || hasTreasure)) {
-      if (hasAxe && hasTreasure) {
-        banner.textContent =
-          "Start-of-sequence: next is either Axe Ricochet (use 50×) or Treasure Hunt (50× if you need gold).";
-      } else if (hasAxe) {
-        banner.textContent =
-          "Start-of-sequence: next will be Axe Ricochet — use 50×.";
-      } else if (hasTreasure) {
-        banner.textContent =
-          "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
+      if (!hasCrossroads && (hasAxe || hasTreasure)) {
+        if (hasAxe && hasTreasure) {
+          banner.textContent =
+            "Start-of-sequence: next is either Axe Ricochet (use 50×) or Treasure Hunt (50× if you need gold).";
+        } else if (hasAxe) {
+          banner.textContent =
+            "Start-of-sequence: next will be Axe Ricochet — use 50×.";
+        } else if (hasTreasure) {
+          banner.textContent =
+            "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
+        }
       }
-    }
 
-    // Optional: keep the detailed text hint as well (shows what each next move implies)
-    const byThird = {};
-    for (const s of candidates) {
-      const third = sequences[s.seq][2];
-      byThird[third] = (byThird[third] || new Set());
-      byThird[third].add(s.seq);
+      const byThird = {};
+      for (const s of candidates) {
+        const third = sequences[s.seq][2];
+        byThird[third] = (byThird[third] || new Set());
+        byThird[third].add(s.seq);
+      }
+      const lines = Object.entries(byThird).map(([ev, set]) => {
+        const seqs = [...set].sort((a,b)=>a-b).join(", ");
+        return `If next is ${ev}: sequence ${seqs}`;
+      });
+      earlyHint = "\nStart-of-sequence hint (after T,T):\n" + lines.join("\n");
     }
-    const lines = Object.entries(byThird).map(([ev, set]) => {
-      const seqs = [...set].sort((a,b)=>a-b).join(", ");
-      return `If next is ${ev}: sequence ${seqs}`;
-    });
-    earlyHint = "\nStart-of-sequence hint (after T,T):\n" + lines.join("\n");
   }
-}
-
 
   if(!locked){
     status.textContent =
@@ -519,32 +518,21 @@ if (
     return;
   }
 
-  // Locked state
-const s = inSeqStates[0];
-const seq = s.seq;
+  const s = inSeqStates[0];
+  const seq = s.seq;
+  const nextExpected = s.move;
+  const currentMove = s.move - 1;
+  const moves = sequences[seq];
 
-// IMPORTANT: s.move is the NEXT expected move.
-// The move you are CURRENTLY on is one behind.
-const nextExpected = s.move;
-const currentMove = s.move - 1;
-
-const moves = sequences[seq];
-
-// If we are finishing sequences and cycle context is now trustworthy, lock it
-if (currentMove === 13 && states.length > 0) {
-  const doneMasks = new Set(states.map(st => st.doneMask));
-  if (doneMasks.size === 1) {
-    const dm = [...doneMasks][0];
-    const dmNorm = (dm === ALL_MASK) ? 0 : dm;
-    const doneCount = [1,2,3,4].filter(x => dmNorm & bit(x)).length;
-    if (doneCount >= 2) cycleLocked = true;
+  // auto-lock once we’re confident (2+ completes in a consistent mask)
+  if (currentMove === 13 && cycleKnown) {
+    if (completedNums.length >= 2 && !cycleLocked) {
+      cycleLocked = true;
+      saveState();
+    }
   }
-}
 
-  // Next special (Axe always; Treasure always shown as conditional guidance)
-  const upcoming = moves.slice(Math.max(0, nextExpected - 1)); // start at NEXT event
-
- // include current position
+  const upcoming = moves.slice(Math.max(0, nextExpected - 1));
   let nextSpecialIndex = -1;
   for(let i=0;i<upcoming.length;i++){
     if(upcoming[i] === "Axe Ricochet" || upcoming[i] === "Treasure Hunt"){
@@ -558,26 +546,21 @@ if (currentMove === 13 && states.length > 0) {
     `Move ${currentMove} / 13\n\n` +
     remainingHint;
 
-  // Alerts for current move special
-// Alerts for NEXT move special (so you can set 50× before it happens)
-const nextEvent = moves[nextExpected - 1];
-
-if (nextEvent === "Axe Ricochet") {
-  alert.textContent = "🚨 ENABLE 50× NOW (Axe Ricochet is next)";
-} else if (nextEvent === "Treasure Hunt") {
-  alert.textContent = "💰 Treasure Hunt is next — invest 50× if you need gold";
-} else if (nextSpecialIndex >= 0) {
-  const nextEv = upcoming[nextSpecialIndex];
-  const atMove = nextExpected + nextSpecialIndex; // because upcoming starts at nextExpected
-  if (nextEv === "Axe Ricochet") {
-    status.textContent += `\n\nNext Axe Ricochet at move ${atMove}`;
-  } else {
-    status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
+  const nextEvent = moves[nextExpected - 1];
+  if (nextEvent === "Axe Ricochet") {
+    alert.textContent = "🚨 ENABLE 50× NOW (Axe Ricochet is next)";
+  } else if (nextEvent === "Treasure Hunt") {
+    alert.textContent = "💰 Treasure Hunt is next — invest 50× if you need gold";
+  } else if (nextSpecialIndex >= 0) {
+    const nextEv = upcoming[nextSpecialIndex];
+    const atMove = nextExpected + nextSpecialIndex;
+    if (nextEv === "Axe Ricochet") {
+      status.textContent += `\n\nNext Axe Ricochet at move ${atMove}`;
+    } else {
+      status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
+    }
   }
-}
 
-
-  // Timeline: only A & C colored
   for(let i=1;i<=13;i++){
     const ev = moves[i-1];
     const cell = document.createElement("div");
@@ -586,14 +569,12 @@ if (nextEvent === "Axe Ricochet") {
     if(ev === "Axe Ricochet") cell.classList.add("axeCell");
     if(ev === "Treasure Hunt") cell.classList.add("treasureCell");
 
-if(i < currentMove) cell.classList.add("done");
-if(i === currentMove) cell.classList.add("current");
+    if(i < currentMove) cell.classList.add("done");
+    if(i === currentMove) cell.classList.add("current");
 
-if (nextSpecialIndex >= 0 && i === (nextExpected + nextSpecialIndex)) {
-  cell.classList.add("nextSpecial");
-}
-
-
+    if (nextSpecialIndex >= 0 && i === (nextExpected + nextSpecialIndex)) {
+      cell.classList.add("nextSpecial");
+    }
 
     let l = abbrev[ev];
     if(l === "A" || l === "C") l = `<b>${l}</b>`;
@@ -612,13 +593,11 @@ render();
 
 // set version text AFTER DOM exists
 document.getElementById("verNum").textContent = VERSION;
-
 </script>
 
 <div style="margin-top:14px;font-size:12px;color:#777;">
   Joyland Tracker v<span id="verNum"></span>
 </div>
-
 
 </body>
 </html>
