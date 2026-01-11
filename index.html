@@ -163,7 +163,7 @@ const sequences = {
   4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
 };
 
-const VERSION = "1.10.0";
+const VERSION = "1.10.1";
 
 
 const abbrev = {
@@ -188,10 +188,16 @@ State represents a hypothesis:
 let states = [];
 let inputHistory = []; // user taps (event strings)
 let cycleLocked = false; // becomes true once we’ve observed enough to trust cycle context
+let statesStack = [];       // snapshots of states after each tap
+let cycleLockedStack = [];  // snapshots of cycleLocked after each tap
 
 /* ------------------ Persistence ------------------ */
 function saveState(){
-  localStorage.setItem("joyland_cycle_tracker", JSON.stringify({ states, inputHistory, cycleLocked }));
+  localStorage.setItem(
+  "joyland_cycle_tracker",
+  JSON.stringify({ states, inputHistory, cycleLocked, statesStack, cycleLockedStack })
+);
+
 
 
 }
@@ -204,6 +210,9 @@ function loadState(){
 states = d.states || [];
 inputHistory = d.inputHistory || [];
 cycleLocked = d.cycleLocked || false;
+statesStack = d.statesStack || [];
+cycleLockedStack = d.cycleLockedStack || [];
+
 return true;
 
   }catch(e){ return false; }
@@ -214,24 +223,40 @@ function startEventReset(){
   // user says: new event, cycle definitely reset and new sequence starting
   inputHistory = [];
   states = makeStartStates(/*cycleReset=*/true, /*knownStart=*/true);
+
+  statesStack = [];
+  cycleLockedStack = [];
+
   render();
   saveState();
 }
+
 
 function startNewSequenceKnown(){
   // user says: I’m on move 1 of a new sequence, but cycle may be mid-way/unknown
   inputHistory = [];
   states = makeStartStates(/*cycleReset=*/false, /*knownStart=*/true);
+
+  statesStack = [];
+  cycleLockedStack = [];
+
   render();
   saveState();
 }
 
+
 function hardReset(){
   inputHistory = [];
   states = [];
+  cycleLocked = false;
+
+  statesStack = [];
+  cycleLockedStack = [];
+
   localStorage.removeItem("joyland_cycle_tracker");
   render();
 }
+
 
 function makeStartStates(cycleReset, knownStart){
   // Start at move1 only.
@@ -272,6 +297,9 @@ if (cycleLocked) {
   }
   states = states.filter(s => s.doneMask === bestMask);
 }
+// Save snapshot for Undo (deep copy so it doesn't mutate)
+statesStack.push(JSON.parse(JSON.stringify(states)));
+cycleLockedStack.push(cycleLocked);
 
   render();
   saveState();
@@ -279,24 +307,28 @@ if (cycleLocked) {
 
 function undo(){
   if(inputHistory.length === 0) return;
+
+  // remove last input
   inputHistory.pop();
 
-  // Rebuild from scratch using a broad seed that respects "we might be mid-anywhere"
-  if(inputHistory.length === 0){
-    // keep prior states? simpler: clear
-    states = [];
+  // remove last snapshot
+  if (statesStack.length > 0) statesStack.pop();
+  if (cycleLockedStack.length > 0) cycleLockedStack.pop();
+
+  // restore previous snapshot
+  if (statesStack.length > 0) {
+    states = JSON.parse(JSON.stringify(statesStack[statesStack.length - 1]));
+    cycleLocked = cycleLockedStack[cycleLockedStack.length - 1] || false;
   } else {
-    const first = inputHistory[0];
-    states = seedUnknownStates(first);
-    for(let i=1;i<inputHistory.length;i++){
-      states = advanceStatesWithEvent(states, inputHistory[i]);
-      states = dedupeStates(states);
-      if(states.length === 0) break;
-    }
+    // no snapshot = nothing tracked
+    states = [];
+    cycleLocked = false;
   }
+
   render();
   saveState();
 }
+
 
 function seedUnknownStates(firstEvent){
   const out = [];
@@ -577,9 +609,12 @@ if(!loadState()){
   inputHistory = [];
 }
 render();
+
+// set version text AFTER DOM exists
 document.getElementById("verNum").textContent = VERSION;
 
 </script>
+
 <div style="margin-top:14px;font-size:12px;color:#777;">
   Joyland Tracker v<span id="verNum"></span>
 </div>
