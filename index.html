@@ -163,6 +163,9 @@ const sequences = {
   4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
 };
 
+const VERSION = "1.10.0";
+
+
 const abbrev = {
   "Tiny Adventures":"T",
   "Crossroads of Fate":"F",
@@ -184,19 +187,25 @@ State represents a hypothesis:
 */
 let states = [];
 let inputHistory = []; // user taps (event strings)
+let cycleLocked = false; // becomes true once we’ve observed enough to trust cycle context
 
 /* ------------------ Persistence ------------------ */
 function saveState(){
-  localStorage.setItem("joyland_cycle_tracker", JSON.stringify({ states, inputHistory }));
+  localStorage.setItem("joyland_cycle_tracker", JSON.stringify({ states, inputHistory, cycleLocked }));
+
+
 }
+
 function loadState(){
   const s = localStorage.getItem("joyland_cycle_tracker");
   if(!s) return false;
   try{
     const d = JSON.parse(s);
-    states = d.states || [];
-    inputHistory = d.inputHistory || [];
-    return true;
+states = d.states || [];
+inputHistory = d.inputHistory || [];
+cycleLocked = d.cycleLocked || false;
+return true;
+
   }catch(e){ return false; }
 }
 
@@ -251,6 +260,18 @@ function tap(event){
 
   inputHistory.push(event);
   states = dedupeStates(states);
+if (cycleLocked) {
+  // Keep only the most consistent cycle interpretation
+  const counts = new Map();
+  for (const s of states) {
+    counts.set(s.doneMask, (counts.get(s.doneMask) || 0) + 1);
+  }
+  let bestMask = null, bestCount = -1;
+  for (const [m,c] of counts.entries()) {
+    if (c > bestCount) { bestCount = c; bestMask = m; }
+  }
+  states = states.filter(s => s.doneMask === bestMask);
+}
 
   render();
   saveState();
@@ -369,6 +390,20 @@ function render(){
   const betweenStates = states.filter(s => s.seq === null || s.move === 0);
 
   const seqSet = new Set(inSeqStates.map(s => s.seq));
+if (seqSet.size === 0 && betweenStates.length > 0) {
+  // show which sequences could be next based on doneMask rules
+  const possibleNext = new Set();
+  for (const st of betweenStates) {
+    const dmNorm = (st.doneMask === ALL_MASK) ? 0 : st.doneMask;
+    for (let seq=1; seq<=4; seq++) {
+      if (dmNorm & bit(seq)) continue;
+      possibleNext.add(seq);
+    }
+  }
+  // overwrite display set to show next candidates
+  possibleNext.forEach(x => seqSet.add(x));
+}
+
   const moveSet = new Set(inSeqStates.map(s => s.move));
   const doneMasks = new Set(states.map(s => s.doneMask));
 
@@ -463,6 +498,16 @@ const currentMove = s.move - 1;
 
 const moves = sequences[seq];
 
+// If we are finishing sequences and cycle context is now trustworthy, lock it
+if (currentMove === 13 && states.length > 0) {
+  const doneMasks = new Set(states.map(st => st.doneMask));
+  if (doneMasks.size === 1) {
+    const dm = [...doneMasks][0];
+    const dmNorm = (dm === ALL_MASK) ? 0 : dm;
+    const doneCount = [1,2,3,4].filter(x => dmNorm & bit(x)).length;
+    if (doneCount >= 2) cycleLocked = true;
+  }
+}
 
   // Next special (Axe always; Treasure always shown as conditional guidance)
   const upcoming = moves.slice(Math.max(0, nextExpected - 1)); // start at NEXT event
@@ -532,7 +577,13 @@ if(!loadState()){
   inputHistory = [];
 }
 render();
+document.getElementById("verNum").textContent = VERSION;
+
 </script>
+<div style="margin-top:14px;font-size:12px;color:#777;">
+  Joyland Tracker v<span id="verNum"></span>
+</div>
+
 
 </body>
 </html>
