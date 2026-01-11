@@ -302,7 +302,7 @@ function advanceStatesWithEvent(curStates, event){
       for(let seq=1; seq<=4; seq++){
         if(doneMaskNorm & bit(seq)) continue; // can't repeat within cycle
         if(sequences[seq][0] !== event) continue; // must match move1
-        next.push({ seq, move: 1, doneMask: doneMaskNorm, modeStart: true });
+        next.push({ seq, move: 2, doneMask: doneMaskNorm, modeStart: true });
       }
       continue;
     }
@@ -459,7 +459,7 @@ const seq = s.seq;
 // IMPORTANT: s.move is the NEXT expected move.
 // The move you are CURRENTLY on is one behind.
 const nextExpected = s.move;
-const currentMove = Math.max(1, s.move - 1);
+const currentMove = s.move - 1;
 
 const moves = sequences[seq];
 
