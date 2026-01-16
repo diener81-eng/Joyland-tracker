@@ -35,15 +35,27 @@
       border: none;
     }
 
+    .btnSub {
+      display:block;
+      font-size: 0.82rem;
+      opacity: 0.82;
+      margin-top: 2px;
+      font-style: italic;
+    }
+
     .startEvent { background:#2ecc71; color:#000; font-weight:700; }
     .startSeq { background:#27ae60; color:#000; font-weight:700; }
 
     .tiny { background:#444; color:#fff; }
     .crossroads { background:#16a085; color:#000; }
-    .axeBtn { background:#c0392b; color:#fff; }
-    .treasureBtn { background:#2980b9; color:#fff; }
-    .block { background:#27ae60; color:#000; }
-    .jackpot { background:#f1c40f; color:#000; }
+
+    /* Special buttons (50x logic uses these names) */
+    .cubeBtn { background:#c0392b; color:#fff; }       /* Cube Battle (old Axe Ricochet) */
+    .treasureBtn { background:#2980b9; color:#fff; }   /* Treasure Hunt (old Card Realm) */
+
+    /* Non-special */
+    .axeRicoBtn { background:#27ae60; color:#000; }    /* Axe Ricocheting (old Blocks Duel) */
+    .frenzyBtn { background:#f1c40f; color:#000; }     /* Frenzy Wheel (old Jackpot) */
 
     .undo { background:#8e44ad; color:#fff; }
     .reset { background:#555; color:#fff; }
@@ -112,9 +124,9 @@
     .current { outline: 3px solid #fff; }
     .nextSpecial { outline: 3px solid #e67e22; }
 
-    /* Only these two get color */
-    .axeCell { background: #c0392b; border: 2px solid #fff; }
-    .treasureCell { background: #2980b9; border: 2px solid #fff; }
+    /* Only these two get color (specials) */
+    .cubeCell { background: #c0392b; border: 2px solid #fff; }      /* Cube Battle */
+    .treasureCell { background: #2980b9; border: 2px solid #fff; }  /* Treasure Hunt */
 
     small { display:block; opacity:.7; line-height: 1; margin-top: 2px; }
 
@@ -150,8 +162,8 @@
   <div class="desc">
     Tap each event as it appears in Joyland.<br>
     You will be warned when to use <b>50× compass</b>.<br>
-    Axe Ricochet → always 50×<br>
-    Treasure Hunt (Card Realm) → invest 50× only if you need gold
+    Cube Battle → always 50× <span style="opacity:.8;font-style:italic;">(old Axe Ricochet*w)</span><br>
+    Treasure Hunt → 50× only if you need gold <span style="opacity:.8;font-style:italic;">(old Card Realm*w)</span>
   </div>
 
   <button class="startEvent" onclick="startEventReset()">Start Event (cycle reset)</button>
@@ -159,10 +171,26 @@
 
   <button class="tiny" onclick="tap('Tiny Adventures')">T · Tiny Adventures</button>
   <button class="crossroads" onclick="tap('Crossroads of Fate')">F · Crossroads of Fate</button>
-  <button class="axeBtn" onclick="tap('Axe Ricochet')">A · Axe Ricochet</button>
-  <button class="treasureBtn" onclick="tap('Treasure Hunt')">C · Treasure Hunt (Card Realm)</button>
-  <button class="block" onclick="tap('Blocks Duel')">B · Blocks Duel</button>
-  <button class="jackpot" onclick="tap('Jackpot')">J · Jackpot</button>
+
+  <button class="cubeBtn" onclick="tap('Cube Battle')">
+    A · Cube Battle
+    <span class="btnSub">(old Axe Ricochet*w)</span>
+  </button>
+
+  <button class="treasureBtn" onclick="tap('Treasure Hunt')">
+    C · Treasure Hunt
+    <span class="btnSub">(old Card Realm*w)</span>
+  </button>
+
+  <button class="axeRicoBtn" onclick="tap('Axe Ricocheting')">
+    B · Axe Ricocheting
+    <span class="btnSub">(old Blocks Duel*w)</span>
+  </button>
+
+  <button class="frenzyBtn" onclick="tap('Frenzy Wheel')">
+    J · Frenzy Wheel
+    <span class="btnSub">(old Jackpot*w)</span>
+  </button>
 
   <div class="alert" id="alert"></div>
   <div class="alert" id="banner"></div>
@@ -182,21 +210,21 @@
 <script>
 /* ------------------ Data ------------------ */
 const sequences = {
-  1:["Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Blocks Duel","Jackpot"],
-  2:["Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Jackpot","Crossroads of Fate","Tiny Adventures","Blocks Duel"],
-  3:["Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Jackpot","Tiny Adventures","Blocks Duel","Crossroads of Fate"],
-  4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricochet","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Axe Ricochet","Jackpot"]
+  1:["Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricocheting","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Axe Ricocheting","Frenzy Wheel"],
+  2:["Tiny Adventures","Tiny Adventures","Cube Battle","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Crossroads of Fate","Frenzy Wheel","Crossroads of Fate","Tiny Adventures","Axe Ricocheting"],
+  3:["Tiny Adventures","Tiny Adventures","Crossroads of Fate","Treasure Hunt","Tiny Adventures","Tiny Adventures","Cube Battle","Tiny Adventures","Crossroads of Fate","Frenzy Wheel","Tiny Adventures","Axe Ricocheting","Crossroads of Fate"],
+  4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Cube Battle","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Cube Battle","Frenzy Wheel"]
 };
 
-const VERSION = "1.10.2";
+const VERSION = "1.11.0";
 
 const abbrev = {
   "Tiny Adventures":"T",
   "Crossroads of Fate":"F",
-  "Axe Ricochet":"A",
+  "Cube Battle":"A",        // keep letters user wanted
   "Treasure Hunt":"C",
-  "Blocks Duel":"B",
-  "Jackpot":"J"
+  "Axe Ricocheting":"B",
+  "Frenzy Wheel":"J"
 };
 
 const ALL_MASK = 0b1111;
@@ -431,7 +459,6 @@ function render(){
   const doneMasks = new Set(states.map(s => s.doneMask));
   const locked = (seqSet.size === 1 && moveSet.size === 1 && betweenStates.length === 0);
 
-  // Cycle badges (only "known" if doneMasks is consistent)
   let completedNums = [];
   let remainingNums = [];
   let cycleKnown = (doneMasks.size === 1);
@@ -446,12 +473,11 @@ function render(){
   cycleStatus.innerHTML =
     `Cycle status: <b>${cycleLocked ? "LOCKED" : "UNKNOWN"}</b><br>` +
     (cycleKnown
-      ? `<div class="badgeRow">Completed this cycle: ${badgeList(completedNums, "done")}</div>` +
+      ? `<div class="badgeRow">Sequences Completed this cycle: ${badgeList(completedNums, "done")}</div>` +
         `<div class="badgeRow">Remaining: ${badgeList(remainingNums, "rem")}</div>`
-      : `<div class="badgeRow"><span class="badge unk">Completed/Remaining: unknown</span></div>`
+      : `<div class="badgeRow"><span class="badge unk">Sequences Completed/Remaining: unknown</span></div>`
     );
 
-  // Remaining hint text (for status block)
   let remainingHint = "";
   if(cycleKnown){
     remainingHint =
@@ -477,16 +503,16 @@ function render(){
     if (candidates.length) {
       const possibleThirdMoves = new Set(candidates.map(s => sequences[s.seq][2]));
       const hasCrossroads = possibleThirdMoves.has("Crossroads of Fate");
-      const hasAxe = possibleThirdMoves.has("Axe Ricochet");
+      const hasCube = possibleThirdMoves.has("Cube Battle");
       const hasTreasure = possibleThirdMoves.has("Treasure Hunt");
 
-      if (!hasCrossroads && (hasAxe || hasTreasure)) {
-        if (hasAxe && hasTreasure) {
+      if (!hasCrossroads && (hasCube || hasTreasure)) {
+        if (hasCube && hasTreasure) {
           banner.textContent =
-            "Start-of-sequence: next is either Axe Ricochet (use 50×) or Treasure Hunt (50× if you need gold).";
-        } else if (hasAxe) {
+            "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
+        } else if (hasCube) {
           banner.textContent =
-            "Start-of-sequence: next will be Axe Ricochet — use 50×.";
+            "Start-of-sequence: next will be Cube Battle — use 50×.";
         } else if (hasTreasure) {
           banner.textContent =
             "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
@@ -535,7 +561,7 @@ function render(){
   const upcoming = moves.slice(Math.max(0, nextExpected - 1));
   let nextSpecialIndex = -1;
   for(let i=0;i<upcoming.length;i++){
-    if(upcoming[i] === "Axe Ricochet" || upcoming[i] === "Treasure Hunt"){
+    if(upcoming[i] === "Cube Battle" || upcoming[i] === "Treasure Hunt"){
       nextSpecialIndex = i;
       break;
     }
@@ -547,15 +573,15 @@ function render(){
     remainingHint;
 
   const nextEvent = moves[nextExpected - 1];
-  if (nextEvent === "Axe Ricochet") {
-    alert.textContent = "🚨 ENABLE 50× NOW (Axe Ricochet is next)";
+  if (nextEvent === "Cube Battle") {
+    alert.textContent = "🚨 ENABLE 50× NOW (Cube Battle is next)";
   } else if (nextEvent === "Treasure Hunt") {
     alert.textContent = "💰 Treasure Hunt is next — invest 50× if you need gold";
   } else if (nextSpecialIndex >= 0) {
     const nextEv = upcoming[nextSpecialIndex];
     const atMove = nextExpected + nextSpecialIndex;
-    if (nextEv === "Axe Ricochet") {
-      status.textContent += `\n\nNext Axe Ricochet at move ${atMove}`;
+    if (nextEv === "Cube Battle") {
+      status.textContent += `\n\nNext Cube Battle at move ${atMove}`;
     } else {
       status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
     }
@@ -566,7 +592,7 @@ function render(){
     const cell = document.createElement("div");
     cell.className = "cell";
 
-    if(ev === "Axe Ricochet") cell.classList.add("axeCell");
+    if(ev === "Cube Battle") cell.classList.add("cubeCell");
     if(ev === "Treasure Hunt") cell.classList.add("treasureCell");
 
     if(i < currentMove) cell.classList.add("done");
@@ -590,14 +616,16 @@ if(!loadState()){
   inputHistory = [];
 }
 render();
-
-// set version text AFTER DOM exists
-document.getElementById("verNum").textContent = VERSION;
 </script>
 
 <div style="margin-top:14px;font-size:12px;color:#777;">
   Joyland Tracker v<span id="verNum"></span>
 </div>
+
+<script>
+  // set version text AFTER DOM exists
+  document.getElementById("verNum").textContent = VERSION;
+</script>
 
 </body>
 </html>
