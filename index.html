@@ -220,7 +220,7 @@ const sequences = {
   4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Cube Battle","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Cube Battle","Frenzy Wheel"]
 };
 
-const VERSION = "1.11.1";
+const VERSION = "1.11.2";
 
 const abbrev = {
   "Tiny Adventures":"T",
@@ -491,13 +491,16 @@ function render(){
     remainingHint = "Cycle done/remaining: unknown (tracking multiple possibilities)";
   }
 
+  // ✅ FIX: define last2 before using it
+  const last2 = inputHistory.slice(-2);
+
   // Start-of-sequence banner after T,T (only if Crossroads is impossible)
   let earlyHint = "";
   if (
-  last2.length === 2 &&
-  last2[0] === "Tiny Adventures" &&
-  last2[1] === "Tiny Adventures"
-) {
+    last2.length === 2 &&
+    last2[0] === "Tiny Adventures" &&
+    last2[1] === "Tiny Adventures"
+  ) {
     const candidates = inSeqStates.filter(s =>
       sequences[s.seq][0] === "Tiny Adventures" &&
       sequences[s.seq][1] === "Tiny Adventures" &&
