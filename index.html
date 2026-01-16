@@ -49,7 +49,7 @@
     .tiny { background:#444; color:#fff; }
     .crossroads { background:#16a085; color:#000; }
 
-    /* Special buttons (50x logic uses these names) */
+    /* Special buttons */
     .cubeBtn { background:#c0392b; color:#fff; }       /* Cube Battle (old Axe Ricochet) */
     .treasureBtn { background:#2980b9; color:#fff; }   /* Treasure Hunt (old Card Realm) */
 
@@ -207,6 +207,10 @@
   <button class="undo" onclick="undo()">Undo Last Tap</button>
   <button class="reset" onclick="hardReset()">Reset All</button>
 
+  <div style="margin-top:14px;font-size:12px;color:#777;">
+    Joyland Tracker v<span id="verNum"></span>
+  </div>
+
 <script>
 /* ------------------ Data ------------------ */
 const sequences = {
@@ -216,12 +220,12 @@ const sequences = {
   4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Cube Battle","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Cube Battle","Frenzy Wheel"]
 };
 
-const VERSION = "1.11.0";
+const VERSION = "1.11.1";
 
 const abbrev = {
   "Tiny Adventures":"T",
   "Crossroads of Fate":"F",
-  "Cube Battle":"A",        // keep letters user wanted
+  "Cube Battle":"A",
   "Treasure Hunt":"C",
   "Axe Ricocheting":"B",
   "Frenzy Wheel":"J"
@@ -488,74 +492,12 @@ function render(){
   }
 
   // Start-of-sequence banner after T,T (only if Crossroads is impossible)
-// Start-of-sequence banner after T,T (only if Crossroads is impossible)
-let earlyHint = "";
-if (
-  inputHistory.length === 2 &&
-  inputHistory[0] === "Tiny Adventures" &&
-  inputHistory[1] === "Tiny Adventures"
-) {
-  const candidates = inSeqStates.filter(s =>
-    sequences[s.seq][0] === "Tiny Adventures" &&
-    sequences[s.seq][1] === "Tiny Adventures" &&
-    s.move === 3
-  );
-
-  if (candidates.length) {
-    const possibleThirdMoves = new Set(candidates.map(s => sequences[s.seq][2]));
-    const hasCrossroads = possibleThirdMoves.has("Crossroads of Fate");
-    const hasCube = possibleThirdMoves.has("Cube Battle");
-    const hasTreasure = possibleThirdMoves.has("Treasure Hunt");
-
-    // Determine if cycle is "known" and specifically implies only {2,4} remain
-    // (i.e., sequences 1 and 3 are completed in this cycle).
-    let onlyTwoOrFourRemain = false;
-    if (cycleKnown) {
-      const remSet = new Set(remainingNums);
-      const doneSet = new Set(completedNums);
-      onlyTwoOrFourRemain =
-        remSet.size === 2 &&
-        remSet.has(2) &&
-        remSet.has(4) &&
-        doneSet.has(1) &&
-        doneSet.has(3);
-    }
-
-    // Only show banner when Crossroads is eliminated (i.e., next is NOT Crossroads)
-    if (!hasCrossroads && (hasCube || hasTreasure)) {
-      if (onlyTwoOrFourRemain) {
-        banner.textContent =
-          "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold or want to gamble for Joycoin).";
-      } else {
-        // fallback generic banner (old behavior)
-        if (hasCube && hasTreasure) {
-          banner.textContent =
-            "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
-        } else if (hasCube) {
-          banner.textContent =
-            "Start-of-sequence: next will be Cube Battle — use 50×.";
-        } else if (hasTreasure) {
-          banner.textContent =
-            "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
-        }
-      }
-    }
-
-    // Optional: keep the detailed text hint as well (shows what each next move implies)
-    const byThird = {};
-    for (const s of candidates) {
-      const third = sequences[s.seq][2];
-      byThird[third] = (byThird[third] || new Set());
-      byThird[third].add(s.seq);
-    }
-    const lines = Object.entries(byThird).map(([ev, set]) => {
-      const seqs = [...set].sort((a,b)=>a-b).join(", ");
-      return `If next is ${ev}: sequence ${seqs}`;
-    });
-    earlyHint = "\nStart-of-sequence hint (after T,T):\n" + lines.join("\n");
-  }
-}
-
+  let earlyHint = "";
+  if (
+    inputHistory.length === 2 &&
+    inputHistory[0] === "Tiny Adventures" &&
+    inputHistory[1] === "Tiny Adventures"
+  ) {
     const candidates = inSeqStates.filter(s =>
       sequences[s.seq][0] === "Tiny Adventures" &&
       sequences[s.seq][1] === "Tiny Adventures" &&
@@ -568,16 +510,34 @@ if (
       const hasCube = possibleThirdMoves.has("Cube Battle");
       const hasTreasure = possibleThirdMoves.has("Treasure Hunt");
 
+      // Specifically: known cycle + completed {1,3} => remaining {2,4}
+      let onlyTwoOrFourRemain = false;
+      if (cycleKnown) {
+        const remSet = new Set(remainingNums);
+        const doneSet = new Set(completedNums);
+        onlyTwoOrFourRemain =
+          remSet.size === 2 &&
+          remSet.has(2) &&
+          remSet.has(4) &&
+          doneSet.has(1) &&
+          doneSet.has(3);
+      }
+
       if (!hasCrossroads && (hasCube || hasTreasure)) {
-        if (hasCube && hasTreasure) {
+        if (onlyTwoOrFourRemain) {
           banner.textContent =
-            "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
-        } else if (hasCube) {
-          banner.textContent =
-            "Start-of-sequence: next will be Cube Battle — use 50×.";
-        } else if (hasTreasure) {
-          banner.textContent =
-            "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
+            "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold or want to gamble for Joycoin).";
+        } else {
+          if (hasCube && hasTreasure) {
+            banner.textContent =
+              "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
+          } else if (hasCube) {
+            banner.textContent =
+              "Start-of-sequence: next will be Cube Battle — use 50×.";
+          } else if (hasTreasure) {
+            banner.textContent =
+              "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
+          }
         }
       }
 
@@ -611,14 +571,6 @@ if (
   const nextExpected = s.move;
   const currentMove = s.move - 1;
   const moves = sequences[seq];
-
-  // auto-lock once we’re confident (2+ completes in a consistent mask)
-  if (currentMove === 13 && cycleKnown) {
-    if (completedNums.length >= 2 && !cycleLocked) {
-      cycleLocked = true;
-      saveState();
-    }
-  }
 
   const upcoming = moves.slice(Math.max(0, nextExpected - 1));
   let nextSpecialIndex = -1;
@@ -678,15 +630,9 @@ if(!loadState()){
   inputHistory = [];
 }
 render();
-</script>
 
-<div style="margin-top:14px;font-size:12px;color:#777;">
-  Joyland Tracker v<span id="verNum"></span>
-</div>
-
-<script>
-  // set version text AFTER DOM exists
-  document.getElementById("verNum").textContent = VERSION;
+// version text AFTER DOM exists
+document.getElementById("verNum").textContent = VERSION;
 </script>
 
 </body>
