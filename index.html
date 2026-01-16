@@ -25,85 +25,117 @@
       line-height: 1.4;
     }
 
-    /* ✅ Buttons: not so wide, and laid out nicely */
+    /* ✅ Square button grid */
     .btnGrid{
       width: 100%;
-      max-width: 520px;
+      max-width: 560px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
     }
-    @media (min-width: 520px){
-      .btnGrid{
-        grid-template-columns: 1fr 1fr; /* 2 columns on wider screens */
-      }
+    @media (max-width: 520px){
+      .btnGrid{ grid-template-columns: 1fr 1fr; }
     }
 
+    /* ✅ Square tile buttons */
     button {
-      font-size: 1rem;
-      padding: .9rem .9rem;
-      margin: 0;                 /* grid gap handles spacing */
-      width: 100%;               /* full width of the grid cell */
-      max-width: none;           /* remove old max-width behavior */
-      border-radius: 14px;
       border: none;
+      border-radius: 16px;
       cursor: pointer;
       user-select: none;
       touch-action: manipulation;
+
+      /* square-ish */
+      aspect-ratio: 1 / 1;
+      padding: 10px;
+      width: 100%;
     }
 
-    .btnMain{
+    .tile {
+      height: 100%;
       display:flex;
+      flex-direction: column;
       align-items:center;
       justify-content:center;
-      gap: .55rem;
-      font-weight: 800;
-      letter-spacing: .2px;
+      gap: 6px;
     }
-    .btnIcon{
-      font-size: 1.15rem;
+
+    .tileTop{
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      justify-content:center;
+      gap: 4px;
+      margin-bottom: 2px;
+    }
+
+    .tileLetter{
+      font-weight: 950;
+      font-size: 22px;
       line-height: 1;
+      letter-spacing: .5px;
     }
+    .tileIcon{
+      font-size: 20px;
+      line-height: 1;
+      opacity: .95;
+    }
+
+    .tileText{
+      font-weight: 900;
+      font-size: 14px;
+      line-height: 1.05;
+      text-align: center;
+    }
+    .tileText .line2{
+      display:block;
+      font-weight: 800;
+      opacity: .95;
+      margin-top: 2px;
+    }
+
     .btnSub {
       display:block;
-      font-size: 0.82rem;
-      opacity: 0.82;
-      margin-top: 4px;
+      font-size: 11px;      /* ✅ smaller */
+      opacity: 0.8;
+      margin-top: 6px;
       font-style: italic;
-      font-weight: 500;
+      font-weight: 600;
+      line-height: 1.1;
     }
 
-    .startEvent { background:#2ecc71; color:#000; font-weight:800; }
-    .startSeq { background:#27ae60; color:#000; font-weight:800; }
+    /* Colors */
+    .startEvent { background:#2ecc71; color:#000; }
+    .startSeq   { background:#27ae60; color:#000; }
 
-    .tiny { background:#444; color:#fff; }
+    .tiny       { background:#444; color:#fff; }
     .crossroads { background:#16a085; color:#000; }
 
-    /* Special buttons */
-    .cubeBtn { background:#c0392b; color:#fff; }       /* Cube Battle (old Axe Ricochet) */
-    .treasureBtn { background:#2980b9; color:#fff; }   /* Treasure Hunt (old Card Realm) */
+    .cubeBtn    { background:#c0392b; color:#fff; }     /* Cube Battle */
+    .treasureBtn{ background:#2980b9; color:#fff; }     /* Treasure Hunt */
 
-    /* Non-special */
-    .axeRicoBtn { background:#27ae60; color:#000; }    /* Axe Ricocheting (old Blocks Duel) */
-    .frenzyBtn { background:#f1c40f; color:#000; }     /* Frenzy Wheel (old Jackpot) */
+    .axeRicoBtn { background:#27ae60; color:#000; }     /* Axe Ricocheting */
+    .frenzyBtn  { background:#f1c40f; color:#000; }     /* Frenzy Wheel */
 
-    .undo { background:#8e44ad; color:#fff; }
-    .reset { background:#555; color:#fff; }
+    .undo       { background:#8e44ad; color:#fff; }
+    .reset      { background:#555; color:#fff; }
 
-    .divider {
-      margin: 1rem auto;
-      width: 100%;
-      max-width: 520px;
-      border-top: 1px solid #333;
+    /* ✅ separators inside the grid */
+    .sep{
+      grid-column: 1 / -1;
+      height: 1px;
+      background: #2a2a2a;
+      border-radius: 999px;
+      margin: 4px 0;
     }
 
     pre {
       white-space: pre-line;
       text-align: left;
-      margin: .8rem auto 0 auto;
+      margin: .9rem auto 0 auto;
       width: 100%;
-      max-width: 520px;
+      max-width: 560px;
       background: #141414;
       border-radius: 12px;
       padding: .75rem .85rem;
@@ -112,10 +144,10 @@
     }
 
     .alert {
-      margin: .6rem auto 0 auto;
+      margin: .7rem auto 0 auto;
       width: 100%;
-      max-width: 520px;
-      font-weight: 800;
+      max-width: 560px;
+      font-weight: 900;
       color: #ff9f43;
     }
 
@@ -142,14 +174,14 @@
       color: #ccc;
       margin: .75rem auto;
       width: 100%;
-      max-width: 520px;
+      max-width: 560px;
       text-align: left;
     }
 
-    /* ✅ Flow squares: bigger + friendlier */
+    /* Flow squares */
     .timelineWrap{
       width: 100%;
-      max-width: 520px;
+      max-width: 560px;
       margin: 0 auto;
     }
     .timeline {
@@ -191,7 +223,6 @@
     .current { outline: 3px solid #fff; }
     .nextSpecial { outline: 3px solid #e67e22; }
 
-    /* Only these two get color (specials) */
     .cubeCell { background: #c0392b; border: 2px solid #fff; }
     .treasureCell { background: #2980b9; border: 2px solid #fff; }
 
@@ -199,7 +230,7 @@
     #cycleStatus {
       margin: 10px auto 0 auto;
       width: 100%;
-      max-width: 520px;
+      max-width: 560px;
       text-align: left;
       font-size: 13px;
       color: #aaa;
@@ -227,55 +258,120 @@
   <div class="desc">
     Tap each event as it appears in Joyland.<br>
     You will be warned when to use <b>50× compass</b>.<br>
-    Cube Battle → always 50× <span style="opacity:.8;font-style:italic;">(old Axe Ricochet*w)</span><br>
-    Treasure Hunt → 50× only if you need gold <span style="opacity:.8;font-style:italic;">(old Card Realm*w)</span>
+    Cube Battle → always 50× <span style="opacity:.8;font-style:italic;">(wiki: Axe Ricochet)</span><br>
+    Treasure Hunt → 50× only if you need gold <span style="opacity:.8;font-style:italic;">(wiki: Card Realm)</span>
   </div>
 
   <div class="btnGrid">
+    <!-- Start buttons -->
     <button class="startEvent" onclick="startEventReset()">
-      <span class="btnMain"><span class="btnIcon">🟢</span>Start Event</span>
-      <span class="btnSub">(cycle reset)</span>
+      <div class="tile">
+        <div class="tileTop">
+          <div class="tileLetter">🟢</div>
+          <div class="tileIcon">♻️</div>
+        </div>
+        <div class="tileText">Start Event<span class="line2">(cycle reset)</span></div>
+      </div>
     </button>
 
     <button class="startSeq" onclick="startNewSequenceKnown()">
-      <span class="btnMain"><span class="btnIcon">🟩</span>Start New Sequence</span>
-      <span class="btnSub">(I am on move 1)</span>
+      <div class="tile">
+        <div class="tileTop">
+          <div class="tileLetter">🟩</div>
+          <div class="tileIcon">🎬</div>
+        </div>
+        <div class="tileText">New Sequence<span class="line2">(move 1)</span></div>
+      </div>
     </button>
 
+    <div class="sep"></div>
+
+    <!-- Event buttons -->
     <button class="tiny" onclick="tap('Tiny Adventures')">
-      <span class="btnMain"><span class="btnIcon">🧩</span>T · Tiny Adventures</span>
+      <div class="tile">
+        <div class="tileTop">
+          <div class="tileLetter">T</div>
+          <div class="tileIcon">🧩</div>
+        </div>
+        <div class="tileText">Tiny<span class="line2">Adventures</span></div>
+      </div>
     </button>
 
     <button class="crossroads" onclick="tap('Crossroads of Fate')">
-      <span class="btnMain"><span class="btnIcon">🧭</span>F · Crossroads of Fate</span>
+      <div class="tile">
+        <div class="tileTop">
+          <div class="tileLetter">F</div>
+          <div class="tileIcon">🧭</div>
+        </div>
+        <div class="tileText">Crossroads<span class="line2">of Fate</span></div>
+      </div>
     </button>
 
     <button class="cubeBtn" onclick="tap('Cube Battle')">
-      <span class="btnMain"><span class="btnIcon">🎲</span>A · Cube Battle</span>
-      <span class="btnSub">(old Axe Ricochet*w)</span>
+      <div class="tile">
+        <div class="tileTop">
+          <div class="tileLetter">A</div>
+          <div class="tileIcon">🎲</div>
+        </div>
+        <div class="tileText">Cube<span class="line2">Battle</span></div>
+        <span class="btnSub">(wiki: Axe Ricochet)</span>
+      </div>
     </button>
 
     <button class="treasureBtn" onclick="tap('Treasure Hunt')">
-      <span class="btnMain"><span class="btnIcon">🪙</span>C · Treasure Hunt</span>
-      <span class="btnSub">(old Card Realm*w)</span>
+      <div class="tile">
+        <div class="tileTop">
+          <div class="tileLetter">C</div>
+          <div class="tileIcon">🪙</div>
+        </div>
+        <div class="tileText">Treasure<span class="line2">Hunt</span></div>
+        <span class="btnSub">(wiki: Card Realm)</span>
+      </div>
     </button>
 
     <button class="axeRicoBtn" onclick="tap('Axe Ricocheting')">
-      <span class="btnMain"><span class="btnIcon">🪓</span>B · Axe Ricocheting</span>
-      <span class="btnSub">(old Blocks Duel*w)</span>
+      <div class="tile">
+        <div class="tileTop">
+          <div class="tileLetter">B</div>
+          <div class="tileIcon">🪓</div>
+        </div>
+        <div class="tileText">Axe<span class="line2">Ricocheting</span></div>
+        <span class="btnSub">(wiki: Blocks Duel)</span>
+      </div>
     </button>
 
     <button class="frenzyBtn" onclick="tap('Frenzy Wheel')">
-      <span class="btnMain"><span class="btnIcon">🎡</span>J · Frenzy Wheel</span>
-      <span class="btnSub">(old Jackpot*w)</span>
+      <div class="tile">
+        <div class="tileTop">
+          <div class="tileLetter">J</div>
+          <div class="tileIcon">🎡</div>
+        </div>
+        <div class="tileText">Frenzy<span class="line2">Wheel</span></div>
+        <span class="btnSub">(wiki: Jackpot)</span>
+      </div>
     </button>
 
+    <div class="sep"></div>
+
+    <!-- Undo/reset -->
     <button class="undo" onclick="undo()">
-      <span class="btnMain"><span class="btnIcon">↩️</span>Undo Last Tap</span>
+      <div class="tile">
+        <div class="tileTop">
+          <div class="tileLetter">↩️</div>
+          <div class="tileIcon">🕘</div>
+        </div>
+        <div class="tileText">Undo<span class="line2">Last Tap</span></div>
+      </div>
     </button>
 
     <button class="reset" onclick="hardReset()">
-      <span class="btnMain"><span class="btnIcon">🧼</span>Reset All</span>
+      <div class="tile">
+        <div class="tileTop">
+          <div class="tileLetter">🧼</div>
+          <div class="tileIcon">🗑️</div>
+        </div>
+        <div class="tileText">Reset<span class="line2">All</span></div>
+      </div>
     </button>
   </div>
 
@@ -305,7 +401,7 @@ const sequences = {
   4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Cube Battle","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Cube Battle","Frenzy Wheel"]
 };
 
-const VERSION = "1.12.0-ui";
+const VERSION = "1.12.1-ui-square";
 
 const abbrev = {
   "Tiny Adventures":"T",
@@ -572,7 +668,6 @@ function render(){
 
   const last2 = inputHistory.slice(-2);
 
-  let earlyHint = "";
   if (
     last2.length === 2 &&
     last2[0] === "Tiny Adventures" &&
@@ -617,18 +712,6 @@ function render(){
             "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
         }
       }
-
-      const byThird = {};
-      for (const s of candidates) {
-        const third = sequences[s.seq][2];
-        byThird[third] = (byThird[third] || new Set());
-        byThird[third].add(s.seq);
-      }
-      const lines = Object.entries(byThird).map(([ev, set]) => {
-        const seqs = [...set].sort((a,b)=>a-b).join(", ");
-        return `If next is ${ev}: sequence ${seqs}`;
-      });
-      earlyHint = "\nStart-of-sequence hint (after T,T):\n" + lines.join("\n");
     }
   }
 
@@ -638,8 +721,7 @@ function render(){
       `Possible states: ${states.length}\n` +
       `Possible sequences: ${[...seqSet].sort((a,b)=>a-b).join(", ") || "(between sequences)"}\n` +
       `Possible moves: ${[...moveSet].sort((a,b)=>a-b).join(", ") || "(between sequences)"}\n\n` +
-      remainingHint +
-      earlyHint;
+      remainingHint;
     return;
   }
 
@@ -707,7 +789,6 @@ function render(){
   }
 }
 
-/* Load saved state on startup */
 if(!loadState()){
   states = [];
   inputHistory = [];
