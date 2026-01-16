@@ -87,6 +87,19 @@
       font-weight: 700;
       color: #ff9f43;
     }
+/* Pulsing 50x warning */
+.pulse50 {
+  font-weight: 900;
+  color: #fff;
+  text-shadow: 0 0 10px rgba(255, 159, 67, 0.8);
+  animation: pulse50 1.05s ease-in-out infinite;
+}
+
+@keyframes pulse50 {
+  0%   { transform: scale(1);   opacity: 0.85; }
+  50%  { transform: scale(1.06); opacity: 1;   }
+  100% { transform: scale(1);   opacity: 0.85; }
+}
 
     .history {
       max-height: 120px;
@@ -529,7 +542,8 @@ function render(){
       if (!hasCrossroads && (hasCube || hasTreasure)) {
         if (onlyTwoOrFourRemain) {
           banner.textContent =
-            "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold or want to gamble for Joycoin).";
+           Start-of-sequence 2 or 4: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
+
         } else {
           if (hasCube && hasTreasure) {
             banner.textContent =
@@ -589,20 +603,27 @@ function render(){
     `Move ${currentMove} / 13\n\n` +
     remainingHint;
 
-  const nextEvent = moves[nextExpected - 1];
-  if (nextEvent === "Cube Battle") {
-    alert.textContent = "🚨 ENABLE 50× NOW (Cube Battle is next)";
-  } else if (nextEvent === "Treasure Hunt") {
-    alert.textContent = "💰 Treasure Hunt is next — invest 50× if you need gold";
-  } else if (nextSpecialIndex >= 0) {
-    const nextEv = upcoming[nextSpecialIndex];
-    const atMove = nextExpected + nextSpecialIndex;
-    if (nextEv === "Cube Battle") {
-      status.textContent += `\n\nNext Cube Battle at move ${atMove}`;
-    } else {
-      status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
-    }
+const nextEvent = moves[nextExpected - 1];
+
+// clear pulse each render, then add it only for 50x moments
+alert.classList.remove("pulse50");
+
+if (nextEvent === "Cube Battle") {
+  alert.textContent = "🚨 ENABLE 50× NOW (Cube Battle is next)";
+  alert.classList.add("pulse50");
+} else if (nextEvent === "Treasure Hunt") {
+  alert.textContent = "💰 Treasure Hunt is next — invest 50× if you need gold";
+  alert.classList.add("pulse50"); // still a 50x decision moment
+} else if (nextSpecialIndex >= 0) {
+  const nextEv = upcoming[nextSpecialIndex];
+  const atMove = nextExpected + nextSpecialIndex;
+  if (nextEv === "Cube Battle") {
+    status.textContent += `\n\nNext Cube Battle at move ${atMove}`;
+  } else {
+    status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
   }
+}
+
 
   for(let i=1;i<=13;i++){
     const ev = moves[i-1];
