@@ -25,7 +25,7 @@
       line-height: 1.4;
     }
 
-    /* ✅ Square button grid */
+    /* Square button grid */
     .btnGrid{
       width: 100%;
       max-width: 560px;
@@ -34,19 +34,13 @@
       grid-template-columns: 1fr 1fr;
       gap: 12px;
     }
-    @media (max-width: 520px){
-      .btnGrid{ grid-template-columns: 1fr 1fr; }
-    }
 
-    /* ✅ Square tile buttons */
     button {
       border: none;
       border-radius: 16px;
       cursor: pointer;
       user-select: none;
       touch-action: manipulation;
-
-      /* square-ish */
       aspect-ratio: 1 / 1;
       padding: 10px;
       width: 100%;
@@ -97,7 +91,7 @@
 
     .btnSub {
       display:block;
-      font-size: 11px;      /* ✅ smaller */
+      font-size: 11px;
       opacity: 0.8;
       margin-top: 6px;
       font-style: italic;
@@ -112,16 +106,19 @@
     .tiny       { background:#444; color:#fff; }
     .crossroads { background:#16a085; color:#000; }
 
-    .cubeBtn    { background:#c0392b; color:#fff; }     /* Cube Battle */
-    .treasureBtn{ background:#2980b9; color:#fff; }     /* Treasure Hunt */
+    .cubeBtn    { background:#c0392b; color:#fff; }
+    .treasureBtn{ background:#2980b9; color:#fff; }
 
-    .axeRicoBtn { background:#27ae60; color:#000; }     /* Axe Ricocheting */
-    .frenzyBtn  { background:#f1c40f; color:#000; }     /* Frenzy Wheel */
+    .axeRicoBtn { background:#27ae60; color:#000; }
+    .frenzyBtn  { background:#f1c40f; color:#000; }
 
     .undo       { background:#8e44ad; color:#fff; }
     .reset      { background:#555; color:#fff; }
 
-    /* ✅ separators inside the grid */
+    /* Save/Load */
+    .saveBtn    { background:#2d3436; color:#fff; }
+    .loadBtn    { background:#3d3d3d; color:#fff; }
+
     .sep{
       grid-column: 1 / -1;
       height: 1px;
@@ -263,56 +260,39 @@
   </div>
 
   <div class="btnGrid">
-    <!-- Start buttons -->
     <button class="startEvent" onclick="startEventReset()">
       <div class="tile">
-        <div class="tileTop">
-          <div class="tileLetter">🟢</div>
-          <div class="tileIcon">♻️</div>
-        </div>
+        <div class="tileTop"><div class="tileLetter">🟢</div><div class="tileIcon">♻️</div></div>
         <div class="tileText">Start Event<span class="line2">(cycle reset)</span></div>
       </div>
     </button>
 
     <button class="startSeq" onclick="startNewSequenceKnown()">
       <div class="tile">
-        <div class="tileTop">
-          <div class="tileLetter">🟩</div>
-          <div class="tileIcon">🎬</div>
-        </div>
+        <div class="tileTop"><div class="tileLetter">🟩</div><div class="tileIcon">🎬</div></div>
         <div class="tileText">New Sequence<span class="line2">(move 1)</span></div>
       </div>
     </button>
 
     <div class="sep"></div>
 
-    <!-- Event buttons -->
     <button class="tiny" onclick="tap('Tiny Adventures')">
       <div class="tile">
-        <div class="tileTop">
-          <div class="tileLetter">T</div>
-          <div class="tileIcon">🧩</div>
-        </div>
+        <div class="tileTop"><div class="tileLetter">T</div><div class="tileIcon">🧩</div></div>
         <div class="tileText">Tiny<span class="line2">Adventures</span></div>
       </div>
     </button>
 
     <button class="crossroads" onclick="tap('Crossroads of Fate')">
       <div class="tile">
-        <div class="tileTop">
-          <div class="tileLetter">F</div>
-          <div class="tileIcon">🧭</div>
-        </div>
+        <div class="tileTop"><div class="tileLetter">F</div><div class="tileIcon">🧭</div></div>
         <div class="tileText">Crossroads<span class="line2">of Fate</span></div>
       </div>
     </button>
 
     <button class="cubeBtn" onclick="tap('Cube Battle')">
       <div class="tile">
-        <div class="tileTop">
-          <div class="tileLetter">A</div>
-          <div class="tileIcon">🎲</div>
-        </div>
+        <div class="tileTop"><div class="tileLetter">A</div><div class="tileIcon">🎲</div></div>
         <div class="tileText">Cube<span class="line2">Battle</span></div>
         <span class="btnSub">(wiki: Axe Ricochet)</span>
       </div>
@@ -320,10 +300,7 @@
 
     <button class="treasureBtn" onclick="tap('Treasure Hunt')">
       <div class="tile">
-        <div class="tileTop">
-          <div class="tileLetter">C</div>
-          <div class="tileIcon">🪙</div>
-        </div>
+        <div class="tileTop"><div class="tileLetter">C</div><div class="tileIcon">🪙</div></div>
         <div class="tileText">Treasure<span class="line2">Hunt</span></div>
         <span class="btnSub">(wiki: Card Realm)</span>
       </div>
@@ -331,10 +308,7 @@
 
     <button class="axeRicoBtn" onclick="tap('Axe Ricocheting')">
       <div class="tile">
-        <div class="tileTop">
-          <div class="tileLetter">B</div>
-          <div class="tileIcon">🪓</div>
-        </div>
+        <div class="tileTop"><div class="tileLetter">B</div><div class="tileIcon">🪓</div></div>
         <div class="tileText">Axe<span class="line2">Ricocheting</span></div>
         <span class="btnSub">(wiki: Blocks Duel)</span>
       </div>
@@ -342,10 +316,7 @@
 
     <button class="frenzyBtn" onclick="tap('Frenzy Wheel')">
       <div class="tile">
-        <div class="tileTop">
-          <div class="tileLetter">J</div>
-          <div class="tileIcon">🎡</div>
-        </div>
+        <div class="tileTop"><div class="tileLetter">J</div><div class="tileIcon">🎡</div></div>
         <div class="tileText">Frenzy<span class="line2">Wheel</span></div>
         <span class="btnSub">(wiki: Jackpot)</span>
       </div>
@@ -353,23 +324,33 @@
 
     <div class="sep"></div>
 
-    <!-- Undo/reset -->
+    <!-- ✅ Manual Save/Load -->
+    <button class="saveBtn" onclick="copySaveCode()">
+      <div class="tile">
+        <div class="tileTop"><div class="tileLetter">💾</div><div class="tileIcon">📋</div></div>
+        <div class="tileText">Copy<span class="line2">Save Code</span></div>
+      </div>
+    </button>
+
+    <button class="loadBtn" onclick="loadSaveCodePrompt()">
+      <div class="tile">
+        <div class="tileTop"><div class="tileLetter">📥</div><div class="tileIcon">🧾</div></div>
+        <div class="tileText">Load<span class="line2">Save Code</span></div>
+      </div>
+    </button>
+
+    <div class="sep"></div>
+
     <button class="undo" onclick="undo()">
       <div class="tile">
-        <div class="tileTop">
-          <div class="tileLetter">↩️</div>
-          <div class="tileIcon">🕘</div>
-        </div>
+        <div class="tileTop"><div class="tileLetter">↩️</div><div class="tileIcon">🕘</div></div>
         <div class="tileText">Undo<span class="line2">Last Tap</span></div>
       </div>
     </button>
 
     <button class="reset" onclick="hardReset()">
       <div class="tile">
-        <div class="tileTop">
-          <div class="tileLetter">🧼</div>
-          <div class="tileIcon">🗑️</div>
-        </div>
+        <div class="tileTop"><div class="tileLetter">🧼</div><div class="tileIcon">🗑️</div></div>
         <div class="tileText">Reset<span class="line2">All</span></div>
       </div>
     </button>
@@ -401,7 +382,7 @@ const sequences = {
   4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Cube Battle","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Cube Battle","Frenzy Wheel"]
 };
 
-const VERSION = "1.12.1-ui-square";
+const VERSION = "1.13.0-savecode";
 
 const abbrev = {
   "Tiny Adventures":"T",
@@ -421,7 +402,7 @@ let cycleLocked = false;
 let statesStack = [];
 let cycleLockedStack = [];
 
-/* ------------------ Persistence ------------------ */
+/* ------------------ Persistence (auto) ------------------ */
 function saveState(){
   localStorage.setItem(
     "joyland_cycle_tracker",
@@ -441,6 +422,72 @@ function loadState(){
     cycleLockedStack = d.cycleLockedStack || [];
     return true;
   }catch(e){ return false; }
+}
+
+/* ------------------ Manual Save/Load Code ------------------ */
+function buildSavePayload(){
+  return { v: VERSION, t: Date.now(), states, inputHistory, cycleLocked, statesStack, cycleLockedStack };
+}
+
+function encodeSavePayload(payload){
+  // base64 the JSON (safe for copy/paste)
+  const json = JSON.stringify(payload);
+  return btoa(unescape(encodeURIComponent(json)));
+}
+
+function decodeSavePayload(code){
+  const json = decodeURIComponent(escape(atob(code.trim())));
+  return JSON.parse(json);
+}
+
+async function copyToClipboard(text){
+  // Try modern clipboard API; fall back to prompt selection.
+  try{
+    await navigator.clipboard.writeText(text);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+
+async function copySaveCode(){
+  try{
+    const code = encodeSavePayload(buildSavePayload());
+    const ok = await copyToClipboard(code);
+    if(ok){
+      alertBanner("✅ Save code copied to clipboard.");
+    } else {
+      window.prompt("Copy your Save Code:", code);
+    }
+  }catch(e){
+    window.alert("Could not create save code. Try again.");
+  }
+}
+
+function loadSaveCodePrompt(){
+  const code = window.prompt("Paste Save Code here:");
+  if(!code) return;
+  try{
+    const payload = decodeSavePayload(code);
+
+    // restore
+    states = payload.states || [];
+    inputHistory = payload.inputHistory || [];
+    cycleLocked = payload.cycleLocked || false;
+    statesStack = payload.statesStack || [];
+    cycleLockedStack = payload.cycleLockedStack || [];
+
+    saveState();
+    render();
+    alertBanner("✅ Save code loaded.");
+  }catch(e){
+    window.alert("Invalid Save Code (or truncated).");
+  }
+}
+
+function alertBanner(msg){
+  const banner = document.getElementById("banner");
+  banner.textContent = msg;
 }
 
 /* ------------------ Init helpers ------------------ */
@@ -666,8 +713,8 @@ function render(){
     remainingHint = "Cycle done/remaining: unknown (tracking multiple possibilities)";
   }
 
+  // banner logic (kept simple here)
   const last2 = inputHistory.slice(-2);
-
   if (
     last2.length === 2 &&
     last2[0] === "Tiny Adventures" &&
@@ -678,39 +725,13 @@ function render(){
       sequences[s.seq][1] === "Tiny Adventures" &&
       s.move === 3
     );
-
     if (candidates.length) {
       const possibleThirdMoves = new Set(candidates.map(s => sequences[s.seq][2]));
       const hasCrossroads = possibleThirdMoves.has("Crossroads of Fate");
       const hasCube = possibleThirdMoves.has("Cube Battle");
       const hasTreasure = possibleThirdMoves.has("Treasure Hunt");
-
-      let onlyTwoOrFourRemain = false;
-      if (cycleKnown) {
-        const remSet = new Set(remainingNums);
-        const doneSet = new Set(completedNums);
-        onlyTwoOrFourRemain =
-          remSet.size === 2 &&
-          remSet.has(2) &&
-          remSet.has(4) &&
-          doneSet.has(1) &&
-          doneSet.has(3);
-      }
-
       if (!hasCrossroads && (hasCube || hasTreasure)) {
-        if (onlyTwoOrFourRemain) {
-          banner.textContent =
-            "Start-of-sequence 2 or 4: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
-        } else if (hasCube && hasTreasure) {
-          banner.textContent =
-            "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
-        } else if (hasCube) {
-          banner.textContent =
-            "Start-of-sequence: next will be Cube Battle — use 50×.";
-        } else if (hasTreasure) {
-          banner.textContent =
-            "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
-        }
+        banner.textContent = "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
       }
     }
   }
@@ -746,7 +767,6 @@ function render(){
     remainingHint;
 
   const nextEvent = moves[nextExpected - 1];
-
   alert.classList.remove("pulse50");
 
   if (nextEvent === "Cube Battle") {
@@ -755,14 +775,6 @@ function render(){
   } else if (nextEvent === "Treasure Hunt") {
     alert.textContent = "💰 Treasure Hunt is next — invest 50× if you need gold";
     alert.classList.add("pulse50");
-  } else if (nextSpecialIndex >= 0) {
-    const nextEv = upcoming[nextSpecialIndex];
-    const atMove = nextExpected + nextSpecialIndex;
-    if (nextEv === "Cube Battle") {
-      status.textContent += `\n\nNext Cube Battle at move ${atMove}`;
-    } else {
-      status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
-    }
   }
 
   for(let i=1;i<=13;i++){
