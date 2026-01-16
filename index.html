@@ -494,10 +494,10 @@ function render(){
   // Start-of-sequence banner after T,T (only if Crossroads is impossible)
   let earlyHint = "";
   if (
-    inputHistory.length === 2 &&
-    inputHistory[0] === "Tiny Adventures" &&
-    inputHistory[1] === "Tiny Adventures"
-  ) {
+  last2.length === 2 &&
+  last2[0] === "Tiny Adventures" &&
+  last2[1] === "Tiny Adventures"
+) {
     const candidates = inSeqStates.filter(s =>
       sequences[s.seq][0] === "Tiny Adventures" &&
       sequences[s.seq][1] === "Tiny Adventures" &&
