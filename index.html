@@ -25,26 +25,57 @@
       line-height: 1.4;
     }
 
-    button {
-      font-size: 1.02rem;
-      padding: 1rem;
-      margin: .35rem;
-      width: 90%;
-      max-width: 440px;
-      border-radius: 12px;
-      border: none;
+    /* ✅ Buttons: not so wide, and laid out nicely */
+    .btnGrid{
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    @media (min-width: 520px){
+      .btnGrid{
+        grid-template-columns: 1fr 1fr; /* 2 columns on wider screens */
+      }
     }
 
+    button {
+      font-size: 1rem;
+      padding: .9rem .9rem;
+      margin: 0;                 /* grid gap handles spacing */
+      width: 100%;               /* full width of the grid cell */
+      max-width: none;           /* remove old max-width behavior */
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    .btnMain{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: .55rem;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .btnIcon{
+      font-size: 1.15rem;
+      line-height: 1;
+    }
     .btnSub {
       display:block;
       font-size: 0.82rem;
       opacity: 0.82;
-      margin-top: 2px;
+      margin-top: 4px;
       font-style: italic;
+      font-weight: 500;
     }
 
-    .startEvent { background:#2ecc71; color:#000; font-weight:700; }
-    .startSeq { background:#27ae60; color:#000; font-weight:700; }
+    .startEvent { background:#2ecc71; color:#000; font-weight:800; }
+    .startSeq { background:#27ae60; color:#000; font-weight:800; }
 
     .tiny { background:#444; color:#fff; }
     .crossroads { background:#16a085; color:#000; }
@@ -62,8 +93,8 @@
 
     .divider {
       margin: 1rem auto;
-      width: 90%;
-      max-width: 440px;
+      width: 100%;
+      max-width: 520px;
       border-top: 1px solid #333;
     }
 
@@ -71,83 +102,104 @@
       white-space: pre-line;
       text-align: left;
       margin: .8rem auto 0 auto;
-      width: 90%;
-      max-width: 440px;
+      width: 100%;
+      max-width: 520px;
       background: #141414;
-      border-radius: 10px;
-      padding: .7rem .8rem;
+      border-radius: 12px;
+      padding: .75rem .85rem;
       color: #ddd;
       font-size: .92rem;
     }
 
     .alert {
       margin: .6rem auto 0 auto;
-      width: 90%;
-      max-width: 440px;
-      font-weight: 700;
+      width: 100%;
+      max-width: 520px;
+      font-weight: 800;
       color: #ff9f43;
     }
-/* Pulsing 50x warning */
-.pulse50 {
-  font-weight: 900;
-  color: #fff;
-  text-shadow: 0 0 10px rgba(255, 159, 67, 0.8);
-  animation: pulse50 1.05s ease-in-out infinite;
-}
 
-@keyframes pulse50 {
-  0%   { transform: scale(1);   opacity: 0.85; }
-  50%  { transform: scale(1.06); opacity: 1;   }
-  100% { transform: scale(1);   opacity: 0.85; }
-}
+    /* Pulsing 50x warning */
+    .pulse50 {
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(255, 159, 67, 0.85);
+      animation: pulse50 1.05s ease-in-out infinite;
+    }
+    @keyframes pulse50 {
+      0%   { transform: scale(1);    opacity: 0.85; }
+      50%  { transform: scale(1.06); opacity: 1;    }
+      100% { transform: scale(1);    opacity: 0.85; }
+    }
 
     .history {
       max-height: 120px;
       overflow-y: auto;
       background: #181818;
-      border-radius: 10px;
-      padding: .5rem;
+      border-radius: 12px;
+      padding: .6rem .7rem;
       font-size: .9rem;
       color: #ccc;
       margin: .75rem auto;
-      width: 90%;
-      max-width: 440px;
+      width: 100%;
+      max-width: 520px;
       text-align: left;
     }
 
-    .timeline {
-      display: flex;
-      justify-content: center;
-      margin-top: .6rem;
+    /* ✅ Flow squares: bigger + friendlier */
+    .timelineWrap{
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
     }
-    #timelineBottom { margin-top: 10px; }
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      justify-items: center;
+      margin-top: .75rem;
+    }
+    #timelineBottom { margin-top: 12px; }
 
     .cell {
-      width: 28px;
-      height: 28px;
-      margin: 4px;
-      border-radius: 6px;
-      font-size: .8rem;
-      line-height: 28px;
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
       background: #333;
       color: #fff;
-      text-align: center;
+      display:flex;
+      flex-direction: column;
+      align-items:center;
+      justify-content:center;
+      line-height: 1;
+      font-weight: 900;
+      position: relative;
+    }
+    .cell .step{
+      position:absolute;
+      top: 5px;
+      left: 8px;
+      font-size: 11px;
+      opacity: .75;
+      font-weight: 700;
+    }
+    .cell .letter{
+      font-size: 18px;
+      margin-top: 6px;
     }
     .done { filter: brightness(0.6); }
     .current { outline: 3px solid #fff; }
     .nextSpecial { outline: 3px solid #e67e22; }
 
     /* Only these two get color (specials) */
-    .cubeCell { background: #c0392b; border: 2px solid #fff; }      /* Cube Battle */
-    .treasureCell { background: #2980b9; border: 2px solid #fff; }  /* Treasure Hunt */
-
-    small { display:block; opacity:.7; line-height: 1; margin-top: 2px; }
+    .cubeCell { background: #c0392b; border: 2px solid #fff; }
+    .treasureCell { background: #2980b9; border: 2px solid #fff; }
 
     /* Cycle badges */
     #cycleStatus {
-      margin: 8px auto 0 auto;
-      width: 90%;
-      max-width: 440px;
+      margin: 10px auto 0 auto;
+      width: 100%;
+      max-width: 520px;
       text-align: left;
       font-size: 13px;
       color: #aaa;
@@ -179,31 +231,53 @@
     Treasure Hunt → 50× only if you need gold <span style="opacity:.8;font-style:italic;">(old Card Realm*w)</span>
   </div>
 
-  <button class="startEvent" onclick="startEventReset()">Start Event (cycle reset)</button>
-  <button class="startSeq" onclick="startNewSequenceKnown()">Start New Sequence (I am on move 1)</button>
+  <div class="btnGrid">
+    <button class="startEvent" onclick="startEventReset()">
+      <span class="btnMain"><span class="btnIcon">🟢</span>Start Event</span>
+      <span class="btnSub">(cycle reset)</span>
+    </button>
 
-  <button class="tiny" onclick="tap('Tiny Adventures')">T · Tiny Adventures</button>
-  <button class="crossroads" onclick="tap('Crossroads of Fate')">F · Crossroads of Fate</button>
+    <button class="startSeq" onclick="startNewSequenceKnown()">
+      <span class="btnMain"><span class="btnIcon">🟩</span>Start New Sequence</span>
+      <span class="btnSub">(I am on move 1)</span>
+    </button>
 
-  <button class="cubeBtn" onclick="tap('Cube Battle')">
-    A · Cube Battle
-    <span class="btnSub">(old Axe Ricochet*w)</span>
-  </button>
+    <button class="tiny" onclick="tap('Tiny Adventures')">
+      <span class="btnMain"><span class="btnIcon">🧩</span>T · Tiny Adventures</span>
+    </button>
 
-  <button class="treasureBtn" onclick="tap('Treasure Hunt')">
-    C · Treasure Hunt
-    <span class="btnSub">(old Card Realm*w)</span>
-  </button>
+    <button class="crossroads" onclick="tap('Crossroads of Fate')">
+      <span class="btnMain"><span class="btnIcon">🧭</span>F · Crossroads of Fate</span>
+    </button>
 
-  <button class="axeRicoBtn" onclick="tap('Axe Ricocheting')">
-    B · Axe Ricocheting
-    <span class="btnSub">(old Blocks Duel*w)</span>
-  </button>
+    <button class="cubeBtn" onclick="tap('Cube Battle')">
+      <span class="btnMain"><span class="btnIcon">🎲</span>A · Cube Battle</span>
+      <span class="btnSub">(old Axe Ricochet*w)</span>
+    </button>
 
-  <button class="frenzyBtn" onclick="tap('Frenzy Wheel')">
-    J · Frenzy Wheel
-    <span class="btnSub">(old Jackpot*w)</span>
-  </button>
+    <button class="treasureBtn" onclick="tap('Treasure Hunt')">
+      <span class="btnMain"><span class="btnIcon">🪙</span>C · Treasure Hunt</span>
+      <span class="btnSub">(old Card Realm*w)</span>
+    </button>
+
+    <button class="axeRicoBtn" onclick="tap('Axe Ricocheting')">
+      <span class="btnMain"><span class="btnIcon">🪓</span>B · Axe Ricocheting</span>
+      <span class="btnSub">(old Blocks Duel*w)</span>
+    </button>
+
+    <button class="frenzyBtn" onclick="tap('Frenzy Wheel')">
+      <span class="btnMain"><span class="btnIcon">🎡</span>J · Frenzy Wheel</span>
+      <span class="btnSub">(old Jackpot*w)</span>
+    </button>
+
+    <button class="undo" onclick="undo()">
+      <span class="btnMain"><span class="btnIcon">↩️</span>Undo Last Tap</span>
+    </button>
+
+    <button class="reset" onclick="hardReset()">
+      <span class="btnMain"><span class="btnIcon">🧼</span>Reset All</span>
+    </button>
+  </div>
 
   <div class="alert" id="alert"></div>
   <div class="alert" id="banner"></div>
@@ -213,12 +287,10 @@
 
   <div class="history" id="history"></div>
 
-  <div class="timeline" id="timelineTop"></div>
-  <div class="timeline" id="timelineBottom"></div>
-
-  <div class="divider"></div>
-  <button class="undo" onclick="undo()">Undo Last Tap</button>
-  <button class="reset" onclick="hardReset()">Reset All</button>
+  <div class="timelineWrap">
+    <div class="timeline" id="timelineTop"></div>
+    <div class="timeline" id="timelineBottom"></div>
+  </div>
 
   <div style="margin-top:14px;font-size:12px;color:#777;">
     Joyland Tracker v<span id="verNum"></span>
@@ -233,7 +305,7 @@ const sequences = {
   4:["Tiny Adventures","Tiny Adventures","Treasure Hunt","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Cube Battle","Tiny Adventures","Crossroads of Fate","Tiny Adventures","Crossroads of Fate","Cube Battle","Frenzy Wheel"]
 };
 
-const VERSION = "1.11.2";
+const VERSION = "1.12.0-ui";
 
 const abbrev = {
   "Tiny Adventures":"T",
@@ -280,10 +352,8 @@ function startEventReset(){
   inputHistory = [];
   states = makeStartStates(true, true);
   cycleLocked = false;
-
   statesStack = [];
   cycleLockedStack = [];
-
   render();
   saveState();
 }
@@ -291,10 +361,8 @@ function startEventReset(){
 function startNewSequenceKnown(){
   inputHistory = [];
   states = makeStartStates(false, true);
-
   statesStack = [];
   cycleLockedStack = [];
-
   render();
   saveState();
 }
@@ -303,10 +371,8 @@ function hardReset(){
   inputHistory = [];
   states = [];
   cycleLocked = false;
-
   statesStack = [];
   cycleLockedStack = [];
-
   localStorage.removeItem("joyland_cycle_tracker");
   render();
 }
@@ -504,10 +570,8 @@ function render(){
     remainingHint = "Cycle done/remaining: unknown (tracking multiple possibilities)";
   }
 
-  // ✅ FIX: define last2 before using it
   const last2 = inputHistory.slice(-2);
 
-  // Start-of-sequence banner after T,T (only if Crossroads is impossible)
   let earlyHint = "";
   if (
     last2.length === 2 &&
@@ -526,7 +590,6 @@ function render(){
       const hasCube = possibleThirdMoves.has("Cube Battle");
       const hasTreasure = possibleThirdMoves.has("Treasure Hunt");
 
-      // Specifically: known cycle + completed {1,3} => remaining {2,4}
       let onlyTwoOrFourRemain = false;
       if (cycleKnown) {
         const remSet = new Set(remainingNums);
@@ -542,19 +605,16 @@ function render(){
       if (!hasCrossroads && (hasCube || hasTreasure)) {
         if (onlyTwoOrFourRemain) {
           banner.textContent =
-           "Start-of-sequence 2 or 4: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
-
-        } else {
-          if (hasCube && hasTreasure) {
-            banner.textContent =
-              "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
-          } else if (hasCube) {
-            banner.textContent =
-              "Start-of-sequence: next will be Cube Battle — use 50×.";
-          } else if (hasTreasure) {
-            banner.textContent =
-              "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
-          }
+            "Start-of-sequence 2 or 4: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
+        } else if (hasCube && hasTreasure) {
+          banner.textContent =
+            "Start-of-sequence: next is either Cube Battle (use 50×) or Treasure Hunt (50× if you need gold).";
+        } else if (hasCube) {
+          banner.textContent =
+            "Start-of-sequence: next will be Cube Battle — use 50×.";
+        } else if (hasTreasure) {
+          banner.textContent =
+            "Start-of-sequence: next will be Treasure Hunt — 50× only if you need gold.";
         }
       }
 
@@ -603,27 +663,25 @@ function render(){
     `Move ${currentMove} / 13\n\n` +
     remainingHint;
 
-const nextEvent = moves[nextExpected - 1];
+  const nextEvent = moves[nextExpected - 1];
 
-// clear pulse each render, then add it only for 50x moments
-alert.classList.remove("pulse50");
+  alert.classList.remove("pulse50");
 
-if (nextEvent === "Cube Battle") {
-  alert.textContent = "🚨 ENABLE 50× NOW (Cube Battle is next)";
-  alert.classList.add("pulse50");
-} else if (nextEvent === "Treasure Hunt") {
-  alert.textContent = "💰 Treasure Hunt is next — invest 50× if you need gold";
-  alert.classList.add("pulse50"); // still a 50x decision moment
-} else if (nextSpecialIndex >= 0) {
-  const nextEv = upcoming[nextSpecialIndex];
-  const atMove = nextExpected + nextSpecialIndex;
-  if (nextEv === "Cube Battle") {
-    status.textContent += `\n\nNext Cube Battle at move ${atMove}`;
-  } else {
-    status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
+  if (nextEvent === "Cube Battle") {
+    alert.textContent = "🚨 ENABLE 50× NOW (Cube Battle is next)";
+    alert.classList.add("pulse50");
+  } else if (nextEvent === "Treasure Hunt") {
+    alert.textContent = "💰 Treasure Hunt is next — invest 50× if you need gold";
+    alert.classList.add("pulse50");
+  } else if (nextSpecialIndex >= 0) {
+    const nextEv = upcoming[nextSpecialIndex];
+    const atMove = nextExpected + nextSpecialIndex;
+    if (nextEv === "Cube Battle") {
+      status.textContent += `\n\nNext Cube Battle at move ${atMove}`;
+    } else {
+      status.textContent += `\n\nNext Treasure Hunt at move ${atMove} (invest 50× if you need gold)`;
+    }
   }
-}
-
 
   for(let i=1;i<=13;i++){
     const ev = moves[i-1];
@@ -640,9 +698,10 @@ if (nextEvent === "Cube Battle") {
       cell.classList.add("nextSpecial");
     }
 
-    let l = abbrev[ev];
-    if(l === "A" || l === "C") l = `<b>${l}</b>`;
-    cell.innerHTML = `<small>${i}</small>${l}`;
+    const l = abbrev[ev];
+    cell.innerHTML =
+      `<div class="step">${i}</div>` +
+      `<div class="letter">${(l === "A" || l === "C") ? `<b>${l}</b>` : l}</div>`;
 
     (i <= 6 ? top : bottom).appendChild(cell);
   }
@@ -654,8 +713,6 @@ if(!loadState()){
   inputHistory = [];
 }
 render();
-
-// version text AFTER DOM exists
 document.getElementById("verNum").textContent = VERSION;
 </script>
 
